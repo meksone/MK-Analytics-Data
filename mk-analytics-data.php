@@ -518,6 +518,11 @@ function mk_analytics_settings_page_html() {
                                                        l.style.color      = inp.checked ? '#fff'    : '#555';
                                                        l.style.fontWeight = inp.checked ? '700'     : '400';
                                                    });
+                                                   var fd = new FormData();
+                                                   fd.append('action', 'mk_save_date_range');
+                                                   fd.append('nonce', '<?php echo wp_create_nonce('mk_date_range_nonce'); ?>');
+                                                   fd.append('value', el.value);
+                                                   fetch('<?php echo admin_url('admin-ajax.php'); ?>', {method:'POST', body:fd});
                                                })(this)">
                                         <?php echo esc_html($lbl); ?>
                                     </label>
@@ -1833,6 +1838,17 @@ add_action( 'admin_post_mk_manual_sync', function() {
     }
     mk_redirect( mk_fetch_ga4_top_posts() );
 });
+
+// AJAX: save date range immediately on radio change (avoids relying on main form submit)
+add_action( 'wp_ajax_mk_save_date_range', function() {
+    check_ajax_referer( 'mk_date_range_nonce', 'nonce' );
+    if ( ! current_user_can('manage_options') ) wp_send_json_error( 'Unauthorized', 403 );
+    $val     = sanitize_text_field( $_POST['value'] ?? '' );
+    $allowed = array( '1daysAgo', '7daysAgo', '14daysAgo', '30daysAgo' );
+    if ( ! in_array( $val, $allowed, true ) ) wp_send_json_error( 'Invalid value', 400 );
+    update_option( MK_DATE_RANGE_OPT, $val );
+    wp_send_json_success();
+} );
 
 add_action( 'admin_post_mk_manual_import', function() {
     check_admin_referer('mk_import_action');
