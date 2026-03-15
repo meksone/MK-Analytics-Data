@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.7
+ * Version: 3.5.8
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -26,7 +26,7 @@ define( 'MK_API_AUTH_OPT',     'mk_api_auth' );                 // endpoint prot
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.7' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.8' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -2318,10 +2318,12 @@ class MK_GitHub_Updater {
      * folder to match the expected plugin directory name (mk-analytics-data/).
      * Without this rename WordPress loses track of the plugin after the update.
      */
-    public function fix_source_dir( $source, $remote_source, $_upgrader, $hook_extra = array() ) {
+    public function fix_source_dir( $source, $remote_source, $_upgrader, $_hook_extra = array() ) {
         global $wp_filesystem;
 
-        if ( empty( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $this->plugin_file ) {
+        // Detect by main file presence — more reliable than hook_extra during dashboard updates
+        $main_file = trailingslashit( $source ) . basename( $this->plugin_file );
+        if ( ! $wp_filesystem->exists( $main_file ) ) {
             return $source;
         }
 
@@ -2332,7 +2334,7 @@ class MK_GitHub_Updater {
         }
 
         if ( $wp_filesystem->is_dir( $corrected ) ) {
-            $wp_filesystem->delete( $corrected, true ); // remove stale copy if present
+            $wp_filesystem->delete( $corrected, true );
         }
 
         if ( ! $wp_filesystem->move( $source, $corrected ) ) {
