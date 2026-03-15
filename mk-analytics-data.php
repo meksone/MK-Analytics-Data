@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer for meksone.com.
- * Version: 3.5.1
+ * Version: 3.5.2
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
