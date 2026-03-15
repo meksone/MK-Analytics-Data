@@ -2256,13 +2256,15 @@ class MK_GitHub_Updater {
         $remote_version = ltrim( $release['tag_name'], 'v' );
 
         if ( version_compare( $this->current_version, $remote_version, '<' ) ) {
+            $tag      = $release['tag_name'];
+            $zip_url  = "https://github.com/{$this->github_user}/{$this->github_repo}/archive/refs/tags/{$tag}.zip";
             $transient->response[ $this->plugin_file ] = (object) array(
                 'id'            => "github.com/{$this->github_user}/{$this->github_repo}",
                 'slug'          => $this->plugin_dir,
                 'plugin'        => $this->plugin_file,
                 'new_version'   => $remote_version,
                 'url'           => "https://github.com/{$this->github_user}/{$this->github_repo}",
-                'package'       => $release['zipball_url'] ?? '',
+                'package'       => $zip_url,
                 'icons'         => array(),
                 'banners'       => array(),
                 'banners_rtl'   => array(),
@@ -2287,6 +2289,8 @@ class MK_GitHub_Updater {
         if ( ! $release ) return $result;
 
         $remote_version = ltrim( $release['tag_name'], 'v' );
+        $tag            = $release['tag_name'];
+        $zip_url        = "https://github.com/{$this->github_user}/{$this->github_repo}/archive/refs/tags/{$tag}.zip";
 
         return (object) array(
             'name'          => 'MK Analytics Data',
@@ -2295,8 +2299,8 @@ class MK_GitHub_Updater {
             'author'        => '<a href="https://github.com/' . esc_attr($this->github_user) . '">'
                                . esc_html($this->github_user) . '</a>',
             'homepage'      => "https://github.com/{$this->github_user}/{$this->github_repo}",
-            'download_link' => $release['zipball_url'] ?? '',
-            'trunk'         => $release['zipball_url'] ?? '',
+            'download_link' => $zip_url,
+            'trunk'         => $zip_url,
             'last_updated'  => $release['published_at'] ?? '',
             'requires'      => '5.0',
             'tested'        => get_bloginfo('version'),
