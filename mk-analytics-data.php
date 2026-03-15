@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer for meksone.com.
- * Version: 3.5 (stable)
+ * Version: 3.5.1
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -23,6 +23,10 @@ define( 'MK_ANALYTICS_OPTION', 'mk_ga4_analytics_store' );      // per-post anal
 define( 'MK_DATE_RANGE_OPT',   'mk_ga4_date_range' );           // GA4 date range option
 define( 'MK_OP_MODE_OPT',      'mk_operation_mode' );           // operation mode option
 define( 'MK_API_AUTH_OPT',     'mk_api_auth' );                 // endpoint protection settings
+define( 'MK_GITHUB_USER',    'OWNER' );                         // GitHub username/org  ← edit before deploying
+define( 'MK_GITHUB_REPO',    'REPO' );                          // GitHub repository name ← edit before deploying
+define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
+define( 'MK_PLUGIN_VERSION', '3.5.1' );                         // Must match the Version header above
 
 // 1. Load Composer Autoloader
 $mk_autoload = plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
@@ -2179,4 +2183,167 @@ register_deactivation_hook( __FILE__, function() {
 // ─────────────────────────────────────────────
 function mk_get_popular_list() {
     return mk_cache_get() ?: [];
+}
+
+// ─────────────────────────────────────────────
+// 17. GITHUB SELF-UPDATER
+// Hooks into the WordPress update system so that new releases published on
+// GitHub appear in the dashboard exactly like official plugin updates.
+// Configure MK_GITHUB_USER and MK_GITHUB_REPO at the top of this file.
+// ─────────────────────────────────────────────
+class MK_GitHub_Updater {
+
+    private $plugin_file;     // 'mk-analytics-data/mk-analytics-data.php'
+    private $plugin_dir;      // 'mk-analytics-data'
+    private $github_user;
+    private $github_repo;
+    private $current_version;
+    private $cache_key = 'mk_gh_release_cache';
+
+    public function __construct() {
+        $this->plugin_file     = MK_PLUGIN_SLUG;
+        $this->plugin_dir      = dirname( MK_PLUGIN_SLUG );
+        $this->github_user     = MK_GITHUB_USER;
+        $this->github_repo     = MK_GITHUB_REPO;
+        $this->current_version = MK_PLUGIN_VERSION;
+
+        add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
+        add_filter( 'plugins_api',                           array( $this, 'plugin_info' ), 10, 3 );
+        add_filter( 'upgrader_source_selection',             array( $this, 'fix_source_dir' ), 10, 4 );
+        add_action( 'upgrader_process_complete',             array( $this, 'clear_cache' ), 10, 2 );
+    }
+
+    /**
+     * Fetch the latest release from the GitHub API, with a 12-hour transient cache.
+     * Returns the decoded JSON array, or false on failure (network error, 4xx/5xx, etc.).
+     */
+    private function fetch_release() {
+        $cached = get_transient( $this->cache_key );
+        if ( false !== $cached ) return $cached;
+
+        $url      = "https://api.github.com/repos/{$this->github_user}/{$this->github_repo}/releases/latest";
+        $response = wp_remote_get( $url, array(
+            'timeout'    => 10,
+            'user-agent' => 'WordPress/' . get_bloginfo('version') . '; ' . home_url(),
+        ) );
+
+        if ( is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200 ) {
+            return false; // fail silently — leave original transient untouched
+        }
+
+        $data = json_decode( wp_remote_retrieve_body($response), true );
+        if ( empty( $data['tag_name'] ) ) return false;
+
+        set_transient( $this->cache_key, $data, 12 * HOUR_IN_SECONDS );
+        return $data;
+    }
+
+    /**
+     * Inject an update object into the WordPress plugins update transient when a
+     * newer version is available on GitHub.
+     */
+    public function check_for_update( $transient ) {
+        if ( empty( $transient->checked ) ) return $transient;
+
+        $release = $this->fetch_release();
+        if ( ! $release ) return $transient;
+
+        $remote_version = ltrim( $release['tag_name'], 'v' );
+
+        if ( version_compare( $this->current_version, $remote_version, '<' ) ) {
+            $transient->response[ $this->plugin_file ] = (object) array(
+                'id'            => "github.com/{$this->github_user}/{$this->github_repo}",
+                'slug'          => $this->plugin_dir,
+                'plugin'        => $this->plugin_file,
+                'new_version'   => $remote_version,
+                'url'           => "https://github.com/{$this->github_user}/{$this->github_repo}",
+                'package'       => $release['zipball_url'] ?? '',
+                'icons'         => array(),
+                'banners'       => array(),
+                'banners_rtl'   => array(),
+                'tested'        => '',
+                'requires_php'  => '',
+                'compatibility' => new stdClass(),
+            );
+        }
+
+        return $transient;
+    }
+
+    /**
+     * Return plugin metadata (version, changelog, download link) for the
+     * "View version details" popup in the WordPress updates screen.
+     */
+    public function plugin_info( $result, $action, $args ) {
+        if ( 'plugin_information' !== $action ) return $result;
+        if ( ( $args->slug ?? '' ) !== $this->plugin_dir ) return $result;
+
+        $release = $this->fetch_release();
+        if ( ! $release ) return $result;
+
+        $remote_version = ltrim( $release['tag_name'], 'v' );
+
+        return (object) array(
+            'name'          => 'MK Analytics Data',
+            'slug'          => $this->plugin_dir,
+            'version'       => $remote_version,
+            'author'        => '<a href="https://github.com/' . esc_attr($this->github_user) . '">'
+                               . esc_html($this->github_user) . '</a>',
+            'homepage'      => "https://github.com/{$this->github_user}/{$this->github_repo}",
+            'download_link' => $release['zipball_url'] ?? '',
+            'trunk'         => $release['zipball_url'] ?? '',
+            'last_updated'  => $release['published_at'] ?? '',
+            'requires'      => '5.0',
+            'tested'        => get_bloginfo('version'),
+            'sections'      => array(
+                'description' => 'High-performance GA4 most-clicked articles + Remote Content Importer.',
+                'changelog'   => isset( $release['body'] )
+                                 ? '<pre>' . esc_html( $release['body'] ) . '</pre>'
+                                 : '',
+            ),
+        );
+    }
+
+    /**
+     * After WordPress extracts the GitHub ZIP (named OWNER-REPO-{hash}/), rename the
+     * folder to match the expected plugin directory name (mk-analytics-data/).
+     * Without this rename WordPress loses track of the plugin after the update.
+     */
+    public function fix_source_dir( $source, $remote_source, $_upgrader, $hook_extra = array() ) {
+        global $wp_filesystem;
+
+        if ( empty( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $this->plugin_file ) {
+            return $source;
+        }
+
+        $corrected = trailingslashit( $remote_source ) . $this->plugin_dir . '/';
+
+        if ( trailingslashit( $source ) === $corrected ) {
+            return $source; // already the correct folder name — nothing to do
+        }
+
+        if ( $wp_filesystem->is_dir( $corrected ) ) {
+            $wp_filesystem->delete( $corrected, true ); // remove stale copy if present
+        }
+
+        if ( ! $wp_filesystem->move( $source, $corrected ) ) {
+            return new WP_Error(
+                'mk_updater_rename_fail',
+                'Could not rename extracted plugin directory to ' . $this->plugin_dir . '.'
+            );
+        }
+
+        return $corrected;
+    }
+
+    /** Delete the cached release data after a successful update. */
+    public function clear_cache( $upgrader, $hook_extra ) {
+        if ( ! empty( $hook_extra['plugin'] ) && $hook_extra['plugin'] === $this->plugin_file ) {
+            delete_transient( $this->cache_key );
+        }
+    }
+}
+
+if ( is_admin() ) {
+    new MK_GitHub_Updater();
 }
