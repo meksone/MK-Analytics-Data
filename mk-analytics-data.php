@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.11
+ * Version: 3.5.12
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -23,10 +23,11 @@ define( 'MK_ANALYTICS_OPTION', 'mk_ga4_analytics_store' );      // per-post anal
 define( 'MK_DATE_RANGE_OPT',   'mk_ga4_date_range' );           // GA4 date range option
 define( 'MK_OP_MODE_OPT',      'mk_operation_mode' );           // operation mode option
 define( 'MK_API_AUTH_OPT',     'mk_api_auth' );                 // endpoint protection settings
+define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: 'incremental' | 'fresh'
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.11' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.12' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -315,6 +316,11 @@ add_action( 'admin_init', function() {
     register_setting( 'mk_analytics_options', MK_DATE_RANGE_OPT, array(
         'sanitize_callback' => function( $v ) {
             return in_array( $v, array('1daysAgo','7daysAgo','14daysAgo','30daysAgo'), true ) ? $v : '30daysAgo';
+        },
+    ) );
+    register_setting( 'mk_analytics_options', MK_IMPORT_MODE_OPT, array(
+        'sanitize_callback' => function( $v ) {
+            return in_array( $v, array('incremental','fresh'), true ) ? $v : 'incremental';
         },
     ) );
 
@@ -655,6 +661,58 @@ function mk_analytics_settings_page_html() {
                 <div class="mk-panel" id="mk-panel-sources">
                     <h2 class="mk-panel-title">&#128256; Sorgenti Remote (Importazione)</h2>
                     <p style="margin:0 0 14px;color:#555;font-size:13px;">Endpoint JSON di altri siti da cui importare i post popolari.</p>
+
+                    <!-- IMPORT MODE TOGGLE -->
+                    <?php
+                    $import_mode = get_option( MK_IMPORT_MODE_OPT, 'incremental' );
+                    $import_modes = array(
+                        'incremental' => array( 'label' => '&#10133; Incrementale',      'desc' => 'Salta i post già presenti. I post importati in precedenza vengono conservati.' ),
+                        'fresh'       => array( 'label' => '&#128257; Fresh (Sostituisci)', 'desc' => 'Elimina tutti i post importati in precedenza, poi reimporta.' ),
+                    );
+                    ?>
+                    <div style="margin-bottom:18px;padding:12px 14px;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;max-width:560px;">
+                        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Modalità Importazione</div>
+                        <div style="display:flex;gap:0;border:1px solid #ddd;border-radius:6px;overflow:hidden;max-width:420px;" class="mk-import-mode-picker">
+                            <?php foreach ( $import_modes as $val => $cfg ) :
+                                $active = $import_mode === $val;
+                            ?>
+                            <label style="flex:1;text-align:center;padding:8px 6px;cursor:pointer;font-size:12px;
+                                          font-weight:<?php echo $active ? '700' : '400'; ?>;
+                                          background:<?php echo $active ? ( $val === 'fresh' ? '#dc3232' : '#0073aa' ) : '#f9f9f9'; ?>;
+                                          color:<?php echo $active ? '#fff' : '#555'; ?>;
+                                          border-right:1px solid #ddd;transition:all .15s;">
+                                <input type="radio" name="<?php echo MK_IMPORT_MODE_OPT; ?>" value="<?php echo esc_attr($val); ?>"
+                                       <?php checked( $import_mode, $val ); ?>
+                                       style="display:none;"
+                                       onchange="(function(el){
+                                           var active_color = el.value === 'fresh' ? '#dc3232' : '#0073aa';
+                                           el.closest('.mk-import-mode-picker').querySelectorAll('label').forEach(function(l){
+                                               var inp = l.querySelector('input');
+                                               var ac  = inp.value === 'fresh' ? '#dc3232' : '#0073aa';
+                                               l.style.background = inp.checked ? ac      : '#f9f9f9';
+                                               l.style.color      = inp.checked ? '#fff'  : '#555';
+                                               l.style.fontWeight = inp.checked ? '700'   : '400';
+                                           });
+                                           var fd = new FormData();
+                                           fd.append('action', 'mk_save_import_mode');
+                                           fd.append('nonce', '<?php echo wp_create_nonce('mk_import_mode_nonce'); ?>');
+                                           fd.append('value', el.value);
+                                           fetch('<?php echo admin_url('admin-ajax.php'); ?>', {method:'POST', body:fd});
+                                       })(this)">
+                                <?php echo $cfg['label']; ?>
+                            </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <p class="description" id="mk-import-mode-desc" style="margin-top:8px;font-size:12px;">
+                            <?php echo esc_html( $import_modes[ $import_mode ]['desc'] ); ?>
+                        </p>
+                        <?php if ( $import_mode === 'fresh' ) : ?>
+                        <p style="margin:6px 0 0;font-size:12px;color:#dc3232;font-weight:600;">
+                            &#9888; Attenzione: la prossima importazione eliminerà definitivamente tutti i post importati.
+                        </p>
+                        <?php endif; ?>
+                    </div>
+
                     <?php
                     // Build list of all public post types for the select
                     $mk_post_types = get_post_types( array('public' => true), 'objects' );
@@ -1574,8 +1632,25 @@ function mk_import_remote_content() {
         return 'error:no_sources_configured';
     }
 
+    $import_mode = get_option( MK_IMPORT_MODE_OPT, 'incremental' );
+
+    // Fresh mode: permanently delete all previously imported posts before importing
+    if ( $import_mode === 'fresh' ) {
+        $existing = get_posts( array(
+            'post_type'      => 'any',
+            'posts_per_page' => -1,
+            'meta_key'       => '_mk_original_url',
+            'fields'         => 'ids',
+        ) );
+        $deleted = 0;
+        foreach ( $existing as $pid ) {
+            if ( wp_delete_post( $pid, true ) ) $deleted++;
+        }
+        mk_log('IMPORT', 'INFO', "Modalità Fresh: eliminati {$deleted} post precedentemente importati.");
+    }
+
     $imported_count = 0;
-    mk_log('IMPORT', 'INFO', 'Avvio importazione da ' . count($sources) . ' sorgenti.');
+    mk_log('IMPORT', 'INFO', 'Avvio importazione da ' . count($sources) . ' sorgenti.', array('mode' => $import_mode));
 
     foreach ( $sources as $source ) {
         if ( empty( $source['url'] ) ) continue;
@@ -1877,6 +1952,17 @@ add_action( 'wp_ajax_mk_save_date_range', function() {
     $allowed = array( '1daysAgo', '7daysAgo', '14daysAgo', '30daysAgo' );
     if ( ! in_array( $val, $allowed, true ) ) wp_send_json_error( 'Invalid value', 400 );
     update_option( MK_DATE_RANGE_OPT, $val );
+    wp_send_json_success();
+} );
+
+// AJAX: save import mode immediately on radio change
+add_action( 'wp_ajax_mk_save_import_mode', function() {
+    check_ajax_referer( 'mk_import_mode_nonce', 'nonce' );
+    if ( ! current_user_can('manage_options') ) wp_send_json_error( 'Unauthorized', 403 );
+    $val     = sanitize_text_field( $_POST['value'] ?? '' );
+    $allowed = array( 'incremental', 'fresh' );
+    if ( ! in_array( $val, $allowed, true ) ) wp_send_json_error( 'Invalid value', 400 );
+    update_option( MK_IMPORT_MODE_OPT, $val );
     wp_send_json_success();
 } );
 
