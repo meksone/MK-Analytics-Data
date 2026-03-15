@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.6
+ * Version: 3.5.7
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -26,7 +26,7 @@ define( 'MK_API_AUTH_OPT',     'mk_api_auth' );                 // endpoint prot
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.6' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.7' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
