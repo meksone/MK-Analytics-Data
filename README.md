@@ -4,7 +4,7 @@ A high-performance WordPress plugin for integrating Google Analytics 4 data and 
 
 ## 📋 Overview
 
-**MK Analytics Data** is a WordPress plugin designed for meksone.com that provides:
+**MK Analytics Data** is a WordPress plugin that provides:
 
 - 🔍 **GA4 Analytics Integration** - High-performance syncing of most-clicked articles data from Google Analytics 4
 - 📥 **Remote Content Importer** - Automated import of remote content into WordPress
