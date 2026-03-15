@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.9
+ * Version: 3.5.11
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -26,7 +26,7 @@ define( 'MK_API_AUTH_OPT',     'mk_api_auth' );                 // endpoint prot
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.9' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.11' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -597,9 +597,30 @@ function mk_analytics_settings_page_html() {
                     <?php $api_auth = get_option( MK_API_AUTH_OPT, array('enabled'=>0,'username'=>'','password'=>'') ); ?>
                     <hr style="margin:20px 0 16px;">
                     <h3 style="margin:0 0 12px;font-size:13px;">&#128274; Protezione Endpoint REST</h3>
+
+                    <!-- Endpoint reference -->
+                    <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:12px;">
+                        <p style="margin:0 0 10px;font-weight:600;color:#333;">Endpoint disponibili (base: <code>/wp-json/mk/v1/</code>)</p>
+                        <table style="border-collapse:collapse;width:100%;">
+                            <tr style="border-bottom:1px solid #e5e5e5;">
+                                <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /popular-links</td>
+                                <td style="padding:6px 0;color:#555;">Array di URL permalink dei top 10 post per visite. Utile per widget e sidebar.</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #e5e5e5;">
+                                <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /popular-posts</td>
+                                <td style="padding:6px 0;color:#555;">Post completi (titolo, contenuto, immagine, URL, analytics GA4). Usato dall&rsquo;importatore remoto.</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /analytics</td>
+                                <td style="padding:6px 0;color:#555;">Dataset GA4 completo (views, sessioni, utenti, bounce rate, tempo medio) con metadati di fetch.</td>
+                            </tr>
+                        </table>
+                        <p style="margin:10px 0 0;color:#888;">Auth: header <code>Authorization: Basic base64(user:pass)</code> &mdash; oppure query string <code>?mk_user=&hellip;&amp;mk_pass=&hellip;</code></p>
+                    </div>
+
                     <p style="color:#555;font-size:13px;margin-bottom:12px;">
-                        Se abilitata, tutti e tre gli endpoint <code>/mk/v1/*</code> richiedono HTTP Basic Auth.
-                        Imposta le stesse credenziali nella sezione Import per accedere a endpoint protetti.
+                        Se abilitata, tutti e tre gli endpoint richiedono le credenziali configurate qui sotto.
+                        Imposta le stesse credenziali nella sezione <strong>Sorgenti Remote</strong> per accedere agli endpoint protetti di altri siti.
                     </p>
                     <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;">
                         <input type="checkbox" name="<?php echo MK_API_AUTH_OPT; ?>[enabled]" value="1"
@@ -2244,6 +2265,24 @@ class MK_GitHub_Updater {
     }
 
     /**
+     * Return the best available download URL for a release.
+     * Prefers the canonical asset (mk-analytics-data.zip) attached by GitHub Actions;
+     * falls back to the GitHub auto-archive URL if the asset is not present yet.
+     */
+    private function get_download_url( array $release ) {
+        if ( ! empty( $release['assets'] ) ) {
+            foreach ( $release['assets'] as $asset ) {
+                if ( ( $asset['name'] ?? '' ) === $this->plugin_dir . '.zip' ) {
+                    return $asset['browser_download_url'];
+                }
+            }
+        }
+        // Fallback — auto-archive ZIP; fix_source_dir handles the folder rename
+        $tag = $release['tag_name'];
+        return "https://github.com/{$this->github_user}/{$this->github_repo}/archive/refs/tags/{$tag}.zip";
+    }
+
+    /**
      * Inject an update object into the WordPress plugins update transient when a
      * newer version is available on GitHub.
      */
@@ -2256,15 +2295,13 @@ class MK_GitHub_Updater {
         $remote_version = ltrim( $release['tag_name'], 'v' );
 
         if ( version_compare( $this->current_version, $remote_version, '<' ) ) {
-            $tag      = $release['tag_name'];
-            $zip_url  = "https://github.com/{$this->github_user}/{$this->github_repo}/archive/refs/tags/{$tag}.zip";
             $transient->response[ $this->plugin_file ] = (object) array(
                 'id'            => "github.com/{$this->github_user}/{$this->github_repo}",
                 'slug'          => $this->plugin_dir,
                 'plugin'        => $this->plugin_file,
                 'new_version'   => $remote_version,
                 'url'           => "https://github.com/{$this->github_user}/{$this->github_repo}",
-                'package'       => $zip_url,
+                'package'       => $this->get_download_url( $release ),
                 'icons'         => array(),
                 'banners'       => array(),
                 'banners_rtl'   => array(),
@@ -2289,8 +2326,7 @@ class MK_GitHub_Updater {
         if ( ! $release ) return $result;
 
         $remote_version = ltrim( $release['tag_name'], 'v' );
-        $tag            = $release['tag_name'];
-        $zip_url        = "https://github.com/{$this->github_user}/{$this->github_repo}/archive/refs/tags/{$tag}.zip";
+        $zip_url        = $this->get_download_url( $release );
 
         return (object) array(
             'name'          => 'MK Analytics Data',
