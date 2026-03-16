@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.13
+ * Version: 3.5.14
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -27,7 +27,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.13' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.14' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -2377,10 +2377,9 @@ class MK_GitHub_Updater {
      */
     private function screenshots_html() {
         $screenshots = array(
-            1 => 'Dashboard widget — stato cache, cron e ultimo fetch GA4.',
-            2 => 'Scheda Configurazione — GA4, intervallo dati e sorgenti remote.',
-            3 => 'Scheda Debug &amp; Log — log eventi e snapshot di sistema.',
-            4 => 'Scheda Cron Job — pianificazione GA4 sync e import remoto.',
+            1 => 'Scheda Configurazione — GA4, intervallo dati e sorgenti remote.',
+            2 => 'Scheda Configurazione — Importazione dati da feed remoti.',
+            3 => 'Scheda Debug & Log — log eventi e snapshot di sistema.',
         );
         $html = '<ol>';
         foreach ( $screenshots as $n => $caption ) {
