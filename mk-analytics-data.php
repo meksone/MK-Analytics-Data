@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.14
+ * Version: 3.5.15
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -27,7 +27,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.14' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.15' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -2323,9 +2323,10 @@ class MK_GitHub_Updater {
         $this->assets_url      = "https://raw.githubusercontent.com/{$this->github_user}/{$this->github_repo}/main/assets/";
 
         add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
-        add_filter( 'plugins_api',                           array( $this, 'plugin_info' ), 10, 3 );
-        add_filter( 'upgrader_source_selection',             array( $this, 'fix_source_dir' ), 10, 4 );
-        add_action( 'upgrader_process_complete',             array( $this, 'clear_cache' ), 10, 2 );
+        add_filter( 'plugins_api',                                array( $this, 'plugin_info' ), 10, 3 );
+        add_filter( 'upgrader_source_selection',                  array( $this, 'fix_source_dir' ), 10, 4 );
+        add_action( 'upgrader_process_complete',                  array( $this, 'clear_cache' ), 10, 2 );
+        add_filter( 'plugin_action_links_' . $this->plugin_file,  array( $this, 'action_links' ) );
     }
 
     /**
@@ -2465,13 +2466,61 @@ class MK_GitHub_Updater {
                 'high' => $this->assets_url . 'banner-1544x500.png',
             ),
             'sections'      => array(
-                'description'  => 'High-performance GA4 most-clicked articles + Remote Content Importer for WordPress.',
-                'changelog'    => isset( $release['body'] )
-                                  ? '<pre>' . esc_html( $release['body'] ) . '</pre>'
-                                  : '',
+                'description'  => '
+<p><strong>MK Analytics Data</strong> is a private WordPress plugin that syncs Google Analytics 4 data and imports popular posts from remote sites.</p>
+<h4>Features</h4>
+<ul>
+    <li><strong>GA4 Analytics Integration</strong> — Connects to the Google Analytics Data API and fetches the top 10 most-viewed posts for a configurable date range (yesterday, 7 days, 2 weeks, 30 days). Metrics are stored as post meta and exposed via REST.</li>
+    <li><strong>Remote Content Importer</strong> — Pulls posts from any number of remote sites that expose the <code>/wp-json/mk/v1/popular-posts</code> endpoint. Supports incremental (skip existing) or fresh (replace all) import modes, per-source post type and category mapping, and optional HTTP Basic Auth.</li>
+    <li><strong>Redis-safe Dual-layer Cache</strong> — Popular post IDs are stored in both a transient (fast path) and a <code>wp_options</code> DB fallback. If Redis flushes, the DB copy re-warms the transient automatically.</li>
+    <li><strong>Independent Cron Jobs</strong> — Separate schedules for GA4 sync and remote import, each configurable from 1 to 168 hours.</li>
+    <li><strong>REST API</strong> — Three endpoints under <code>/wp-json/mk/v1/</code>: <code>popular-links</code>, <code>popular-posts</code>, <code>analytics</code>. All support optional HTTP Basic Auth.</li>
+    <li><strong>Self-updating</strong> — GitHub Releases-based auto-update fully integrated into the standard WordPress update flow.</li>
+    <li><strong>Debug &amp; Log</strong> — Toggleable event log with up to 200 entries and a live system snapshot panel.</li>
+</ul>
+<h4>Requirements</h4>
+<ul>
+    <li>PHP 7.4+</li>
+    <li>WordPress 5.0+</li>
+    <li>Google Analytics Data PHP Client (<code>google/analytics-data</code> via Composer)</li>
+    <li>A Google Service Account with Viewer access to the GA4 property</li>
+</ul>',
+                'changelog'    => '
+<h4>3.5.14</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>
+<h4>3.5.13</h4><ul><li>Added plugin assets support: icon, banner, and screenshots in the details popup, served from GitHub raw URLs.</li></ul>
+<h4>3.5.12</h4><ul><li>Added Import Mode option (Incremental / Fresh) with AJAX auto-save. Fresh mode permanently deletes all previously imported posts before re-importing.</li></ul>
+<h4>3.5.11</h4><ul><li>Added GitHub Actions workflow to build a canonically named <code>mk-analytics-data.zip</code> on release. Updater now prefers the release asset over the GitHub auto-archive URL.</li></ul>
+<h4>3.5.10</h4><ul><li>Added AJAX handler <code>mk_save_import_mode</code>; date range and import mode now auto-save on click without requiring manual form submit.</li></ul>
+<h4>3.5.9</h4><ul><li>Fixed <code>fix_source_dir</code> to detect the plugin by main file presence instead of <code>hook_extra</code>. Fixed GitHub ZIP download URL to use the direct archive link instead of the API <code>zipball_url</code>.</li></ul>
+<h4>3.5.8</h4><ul><li>Added <code>MK_GitHub_Updater</code> class — GitHub Releases-based self-update fully integrated into the WordPress update flow.</li></ul>
+<h4>3.5.7</h4><ul><li>Added AJAX handler to auto-persist GA4 date range on radio change without requiring manual form save.</li></ul>
+<h4>3.5.6</h4><ul><li>Fixed Composer autoloader loading path to avoid <code>psr/log</code> version conflicts with other plugins.</li></ul>
+<h4>3.5</h4><ul><li>Initial stable release — GA4 integration, remote content importer, dual-layer cache, independent cron jobs, debug log, dashboard widget, REST API with optional auth.</li></ul>',
                 'screenshots'  => $this->screenshots_html(),
             ),
         );
+    }
+
+    /**
+     * Inject a "View details" link into the plugin's action links row on the
+     * Plugins screen. WordPress only auto-generates this for wordpress.org plugins;
+     * for self-hosted plugins we add it manually so the thickbox popup is reachable.
+     */
+    public function action_links( $links ) {
+        $url = add_query_arg( array(
+            'tab'       => 'plugin-information',
+            'plugin'    => $this->plugin_dir,
+            'TB_iframe' => 'true',
+            'width'     => '772',
+            'height'    => '604',
+        ), admin_url('plugin-install.php') );
+
+        $details = '<a href="' . esc_url( $url ) . '" class="thickbox open-plugin-details-modal" data-title="MK Analytics Data">'
+                 . __('View details')
+                 . '</a>';
+
+        array_unshift( $links, $details );
+        return $links;
     }
 
     /**
