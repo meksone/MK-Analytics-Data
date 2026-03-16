@@ -1,6 +1,23 @@
 # MK Analytics Data
 
-A high-performance WordPress plugin for integrating Google Analytics 4 data and remote content management.
+A WordPress plugin for integrating Google Analytics 4 data and remote content management— Not clear? Let me explain what it does.
+
+## What It Does
+
+The plugin has two operation modes:
+
+- **Google Analytics 4 data fetch** — After you authorize a service account to access your GA4 data (setup instructions provided), the plugin connects to Google Analytics via API and fetches the 10 most popular posts along with their analytics metrics. It then creates an endpoint—public or private—that exposes the complete post data (title, content, featured image) and analytics.
+
+- **Remote content importer** — This mode fetches post data from other sites running this plugin and imports them into your site. You can run incremental imports or start fresh each time.
+
+- **Both modes active** — Use this when importing and exporting from the same site. Even if you duplicate many posts, performance remains unaffected—the bottleneck is how you fetch and display data, not post quantity.  
+
+## Use Cases
+
+Imagine you have multiple sites publishing news and articles, and you want to aggregate and display all popular posts from these sources. You could export and import from the same site (e.g., creating a separate CPT that collects only popular posts with analytics as custom fields for use in templates or page builders), or create a completely separate site to collect and display this data differently.
+
+**Example:** A display in a showroom or retail location that showcases the most popular posts from your business website.   
+
 
 ## Support me if you like it 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X7X71W3K7W)
