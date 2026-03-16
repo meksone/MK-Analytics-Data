@@ -1,0 +1,645 @@
+# MK Analytics Data — Translation Template
+# Copyright (C) 2024 meksone
+# This file is distributed under the same license as the MK Analytics Data plugin.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: MK Analytics Data 3.5.17\n"
+"Report-Msgid-Bugs-To: https://github.com/meksone/MK-Analytics-Data/issues\n"
+"POT-Creation-Date: 2026-03-16T00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: Claude Code\n"
+"X-Domain: mk-analytics-data\n"
+
+# --- Nav tabs ---
+msgid "Configuration"
+msgstr ""
+
+msgid "Cron Jobs"
+msgstr ""
+
+msgid "GCP Guide"
+msgstr ""
+
+msgid "Debug &amp; Log"
+msgstr ""
+
+# --- Cron status tooltips ---
+msgid "Active"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+# --- Operation mode ---
+msgid "Operation Mode"
+msgstr ""
+
+msgid "GA4 only"
+msgstr ""
+
+msgid "Import only"
+msgstr ""
+
+msgid "Both"
+msgstr ""
+
+msgid "Sync GA4 data only, do not import from remote sources"
+msgstr ""
+
+msgid "Import from remote sources only, do not sync GA4"
+msgstr ""
+
+msgid "Run both GA4 sync and remote import"
+msgstr ""
+
+msgid "Shows GA4 settings only. Remote import disabled."
+msgstr ""
+
+msgid "Shows remote sources only. GA4 disabled."
+msgstr ""
+
+msgid "All features active."
+msgstr ""
+
+# --- GA4 panel ---
+msgid "GA4 Export"
+msgstr ""
+
+msgid "GA4 Property ID"
+msgstr ""
+
+msgid "Numeric Property ID (digits only)."
+msgstr ""
+
+msgid "GA4 Date Range"
+msgstr ""
+
+msgid "Yesterday"
+msgstr ""
+
+msgid "Last 7 days"
+msgstr ""
+
+msgid "Last 2 weeks"
+msgstr ""
+
+msgid "Last 30 days"
+msgstr ""
+
+msgid "Reference period for GA4 ranking and metrics. The next sync will use this interval."
+msgstr ""
+
+# --- Credentials ---
+msgid "Service Account Credentials"
+msgstr ""
+
+msgid "File credentials.json found in plugin folder."
+msgstr ""
+
+msgid "Credentials saved in database."
+msgstr ""
+
+msgid "No credentials found."
+msgstr ""
+
+msgid "Edit / Replace JSON"
+msgstr ""
+
+msgid "Hide JSON"
+msgstr ""
+
+msgid "Paste the credentials.json file contents here\xe2\x80\xa6"
+msgstr ""
+
+msgid "Paste the Service Account JSON. If the physical file is present, it takes priority."
+msgstr ""
+
+# --- Endpoint protection ---
+msgid "REST Endpoint Protection"
+msgstr ""
+
+msgid "Available endpoints (base: /wp-json/mk/v1/)"
+msgstr ""
+
+msgid "Array of permalink URLs for the top 10 most-viewed posts. Useful for widgets and sidebars."
+msgstr ""
+
+msgid "Full posts (title, content, image, URL, GA4 analytics). Used by the remote importer."
+msgstr ""
+
+msgid "Full GA4 dataset (views, sessions, users, bounce rate, avg time) with fetch metadata."
+msgstr ""
+
+msgid "Auth: header"
+msgstr ""
+
+msgid "or query string"
+msgstr ""
+
+msgid "When enabled, all three endpoints require the credentials configured below. Set the same credentials in the Remote Sources section to access protected endpoints on other sites."
+msgstr ""
+
+msgid "Enable password protection"
+msgstr ""
+
+msgid "Or query string:"
+msgstr ""
+
+# --- Remote sources ---
+msgid "Remote Sources (Import)"
+msgstr ""
+
+msgid "JSON endpoints from other sites to import popular posts from."
+msgstr ""
+
+msgid "Import Mode"
+msgstr ""
+
+msgid "Incremental"
+msgstr ""
+
+msgid "Fresh (Replace)"
+msgstr ""
+
+msgid "Skips already existing posts. Previously imported posts are kept."
+msgstr ""
+
+msgid "Deletes all previously imported posts, then re-imports."
+msgstr ""
+
+msgid "Warning: the next import will permanently delete all imported posts."
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "\xe2\x80\x94 None \xe2\x80\x94"
+msgstr ""
+
+msgid "(no taxonomy)"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Content type"
+msgstr ""
+
+msgid "Hide credentials"
+msgstr ""
+
+msgid "Access credentials (optional)"
+msgstr ""
+
+msgid "Used for HTTP Basic Auth on the remote endpoint."
+msgstr ""
+
+msgid "Add Source"
+msgstr ""
+
+msgid "Save Configuration"
+msgstr ""
+
+# --- Manual actions ---
+msgid "Manual Actions"
+msgstr ""
+
+msgid "Sync GA4"
+msgstr ""
+
+msgid "Refresh popular posts from Google Analytics 4 now."
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Remote Import"
+msgstr ""
+
+msgid "Download posts from all configured sources now."
+msgstr ""
+
+msgid "Run Import"
+msgstr ""
+
+msgid "Popular Posts Cache"
+msgstr ""
+
+msgid "Active transient &mdash; %d posts."
+msgstr ""
+
+#. translators: %d = number of posts
+msgid "Active transient — %d posts."
+msgstr ""
+
+#. translators: %d = number of posts
+msgid "DB fallback active — %d posts (Redis flush?)."
+msgstr ""
+
+msgid "Empty cache."
+msgstr ""
+
+msgid "Clear the cache?"
+msgstr ""
+
+msgid "Clear Cache"
+msgstr ""
+
+# --- Cron tab ---
+msgid "Cron Job Management"
+msgstr ""
+
+msgid "Configure and control the two automatic jobs independently."
+msgstr ""
+
+msgid "ACTIVE"
+msgstr ""
+
+#. translators: %d = interval in hours
+msgid "every %dh"
+msgstr ""
+
+#. translators: %s = human time diff (e.g. "2 minutes")
+msgid "next in %s"
+msgstr ""
+
+msgid "INACTIVE"
+msgstr ""
+
+msgid "automatic GA4 sync not scheduled."
+msgstr ""
+
+msgid "automatic remote import not scheduled."
+msgstr ""
+
+msgid "Every"
+msgstr ""
+
+msgid "hours"
+msgstr ""
+
+msgid "Save GA4 Interval"
+msgstr ""
+
+msgid "Reschedule"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Delete the GA4 Sync Cron?"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Save Import Interval"
+msgstr ""
+
+msgid "Delete the Remote Import Cron?"
+msgstr ""
+
+# --- Debug tab ---
+msgid "Debug Mode"
+msgstr ""
+
+msgid "Debug ACTIVE"
+msgstr ""
+
+msgid "all operations are logged. Disable in production."
+msgstr ""
+
+msgid "Debug INACTIVE"
+msgstr ""
+
+msgid "no log is written."
+msgstr ""
+
+msgid "Disable Debug"
+msgstr ""
+
+msgid "Enable Debug"
+msgstr ""
+
+msgid "Save Debug Setting"
+msgstr ""
+
+msgid "Event Log"
+msgstr ""
+
+#. translators: %d = max log entries
+msgid "last %d — newest first"
+msgstr ""
+
+msgid "Clear the log?"
+msgstr ""
+
+msgid "Clear Log"
+msgstr ""
+
+msgid "Debug inactive: no new events will be logged."
+msgstr ""
+
+msgid "No events in log."
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "Context"
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Data"
+msgstr ""
+
+msgid "System Snapshot"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Component"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Detail"
+msgstr ""
+
+# --- GCP Guide tab ---
+msgid "Guide: creating the Google Cloud project (GCP)"
+msgstr ""
+
+msgid "To enable the GA4 module, you can upload the credentials.json file via FTP"
+msgstr ""
+
+msgid "or"
+msgstr ""
+
+msgid "paste its contents directly in the Configuration tab."
+msgstr ""
+
+msgid "Go to the"
+msgstr ""
+
+msgid "Create a new project (e.g. \"My Analytics\")."
+msgstr ""
+
+msgid "In the side menu, go to"
+msgstr ""
+
+msgid "Search for and enable the"
+msgstr ""
+
+msgid "Go to"
+msgstr ""
+
+msgid "Click"
+msgstr ""
+
+msgid "and choose"
+msgstr ""
+
+msgid "Follow the steps and click"
+msgstr ""
+
+msgid "In the Service Accounts list, click the email you just created."
+msgstr ""
+
+msgid "Go to the"
+msgstr ""
+
+msgid "tab, click"
+msgstr ""
+
+msgid "Option A (FTP):"
+msgstr ""
+
+msgid "Rename the file to credentials.json and upload it to:"
+msgstr ""
+
+msgid "Option B (Database):"
+msgstr ""
+
+msgid "Open the JSON in an editor, copy it and paste it into the Configuration tab field."
+msgstr ""
+
+msgid "IMPORTANT:"
+msgstr ""
+
+msgid "Add the Service Account email as a Viewer in"
+msgstr ""
+
+# --- System snapshot details ---
+msgid "Credentials"
+msgstr ""
+
+msgid "Valid credentials JSON saved in database."
+msgstr ""
+
+#. translators: %s = JSON error message
+msgid "Invalid JSON in database: %s"
+msgstr ""
+
+msgid "No credentials found (neither file nor database)."
+msgstr ""
+
+#. translators: %s = non-numeric value found
+msgid "Value present but not numeric: %s"
+msgstr ""
+
+msgid "Not configured."
+msgstr ""
+
+msgid "Cache (transient)"
+msgstr ""
+
+#. translators: %d = number of post IDs
+msgid "%d post IDs — fast path (transient/Redis)."
+msgstr ""
+
+#. translators: %d = number of post IDs
+msgid "Transient missing (Redis flush?), but DB fallback OK: %d post IDs. Will be re-warmed on next access."
+msgstr ""
+
+msgid "Transient exists but is empty."
+msgstr ""
+
+msgid "No cached data (neither transient nor DB option). Run a GA4 sync."
+msgstr ""
+
+msgid "Cache (DB fallback)"
+msgstr ""
+
+#. translators: %1$d = count, %2$s = saved date, %3$s = expiry date
+msgid "%d post IDs — saved on %s, expires %s."
+msgstr ""
+
+#. translators: %s = expiry date/time
+msgid "DB option found but expired (expires: %s)."
+msgstr ""
+
+msgid "No DB option found. Run a GA4 sync."
+msgstr ""
+
+msgid "Object Cache"
+msgstr ""
+
+msgid "Redis/Memcached active. The plugin uses a dual-layer (transient + DB option) to guarantee persistence."
+msgstr ""
+
+msgid "Standard WP cache (database). Transient and DB option both on MySQL."
+msgstr ""
+
+msgid "Cron Job"
+msgstr ""
+
+#. translators: %1$s = human time diff, %2$d = interval hours
+msgid "Active. Next run in %s (interval: %dh)."
+msgstr ""
+
+msgid "Not scheduled."
+msgstr ""
+
+msgid "Constant set to true in wp-config.php. WP-Cron does not fire on HTTP requests; a system cron is required."
+msgstr ""
+
+msgid "Not defined. WP-Cron works normally."
+msgstr ""
+
+msgid "vendor/autoload.php found."
+msgstr ""
+
+msgid "vendor/autoload.php not found! Run \"composer install\"."
+msgstr ""
+
+msgid "BetaAnalyticsDataClient available."
+msgstr ""
+
+msgid "SDK class not found. Check vendor/."
+msgstr ""
+
+msgid "Remote Sources"
+msgstr ""
+
+msgid "%d source configured."
+msgstr ""
+
+msgid "%d sources configured."
+msgstr ""
+
+msgid "No remote sources configured."
+msgstr ""
+
+# --- Admin notices ---
+msgid "Transient cache cleared."
+msgstr ""
+
+msgid "Cron Job scheduled successfully."
+msgstr ""
+
+msgid "Cron Job deleted."
+msgstr ""
+
+msgid "GA4 sync complete."
+msgstr ""
+
+msgid "GA4 synced but DB cache write failed. Check wp_options permissions."
+msgstr ""
+
+msgid "Log cleared."
+msgstr ""
+
+msgid "Snapshot updated."
+msgstr ""
+
+msgid "Remote Import Cron scheduled."
+msgstr ""
+
+msgid "Remote Import Cron deleted."
+msgstr ""
+
+msgid "GA4 sync disabled by operation mode (Import Only)."
+msgstr ""
+
+msgid "Import disabled by operation mode (GA4 Only)."
+msgstr ""
+
+# --- Dashboard widget ---
+msgid "Total views"
+msgstr ""
+
+msgid "yesterday"
+msgstr ""
+
+msgid "last 7 days"
+msgstr ""
+
+msgid "last 2 weeks"
+msgstr ""
+
+msgid "last 30 days"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Cached posts"
+msgstr ""
+
+msgid "posts"
+msgstr ""
+
+msgid "Active transient"
+msgstr ""
+
+msgid "DB fallback (Redis flush?)"
+msgstr ""
+
+msgid "Empty cache"
+msgstr ""
+
+msgid "Last GA4 fetch"
+msgstr ""
+
+#. translators: %s = human time diff (e.g. "5 minutes")
+msgid "in %s"
+msgstr ""
+
+msgid "ago"
+msgstr ""
+
+msgid "Never run"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+# --- Screenshots ---
+msgid "Configuration tab — GA4, date range and remote sources."
+msgstr ""
+
+msgid "Configuration tab — Import data from remote feeds."
+msgstr ""
+
+msgid "Debug &amp; Log tab — event log and system snapshot."
+msgstr ""
+
+# --- JS strings (via mkL10n) ---
+msgid "Loading error"
+msgstr ""

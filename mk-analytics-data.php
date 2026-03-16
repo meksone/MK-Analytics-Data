@@ -2,10 +2,12 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.16
+ * Version: 3.5.17
  * Requires PHP: 8.3
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: mk-analytics-data
+ * Domain Path: /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -30,7 +32,14 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.16' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.17' );                         // Must match the Version header above
+
+// ─────────────────────────────────────────────
+// i18n — load translations (MO/PO files in /languages)
+// ─────────────────────────────────────────────
+add_action( 'init', function() {
+    load_plugin_textdomain( 'mk-analytics-data', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+} );
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -411,26 +420,26 @@ function mk_analytics_settings_page_html() {
         </style>
 
         <div class="nav-tab-wrapper">
-            <a href="#settings" class="nav-tab nav-tab-active">Configurazione</a>
+            <a href="#settings" class="nav-tab nav-tab-active"><?php esc_html_e( 'Configuration', 'mk-analytics-data' ); ?></a>
             <a href="#cron" class="nav-tab">
-                Cron Job
+                <?php esc_html_e( 'Cron Jobs', 'mk-analytics-data' ); ?>
                 <span style="display:inline-block;width:9px;height:9px;border-radius:50%;
                     background:<?php echo $cron['active'] ? '#46b450' : '#dc3232'; ?>;
                     margin-left:5px;vertical-align:middle;"
-                    title="GA4 Sync: <?php echo $cron['active'] ? 'Attivo' : 'Inattivo'; ?>"></span>
+                    title="GA4 Sync: <?php echo $cron['active'] ? esc_attr__( 'Active', 'mk-analytics-data' ) : esc_attr__( 'Inactive', 'mk-analytics-data' ); ?>"></span>
                 <span style="display:inline-block;width:9px;height:9px;border-radius:50%;
                     background:<?php echo $cron_import['active'] ? '#46b450' : '#dc3232'; ?>;
                     margin-left:2px;vertical-align:middle;"
-                    title="Import: <?php echo $cron_import['active'] ? 'Attivo' : 'Inattivo'; ?>"></span>
+                    title="Import: <?php echo $cron_import['active'] ? esc_attr__( 'Active', 'mk-analytics-data' ) : esc_attr__( 'Inactive', 'mk-analytics-data' ); ?>"></span>
             </a>
             <a href="#debug" class="nav-tab">
-                Debug &amp; Log
+                <?php esc_html_e( 'Debug &amp; Log', 'mk-analytics-data' ); ?>
                 <?php if ( $debug_on ) : ?>
                 <span style="display:inline-block;background:#ffb900;color:#000;font-size:10px;
                     font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle;">ON</span>
                 <?php endif; ?>
             </a>
-            <a href="#guide" class="nav-tab">Guida GCP</a>
+            <a href="#guide" class="nav-tab"><?php esc_html_e( 'GCP Guide', 'mk-analytics-data' ); ?></a>
         </div>
 
         <!-- ══════════════════════════════════
@@ -443,14 +452,14 @@ function mk_analytics_settings_page_html() {
             <form action="options.php" method="post" id="mk-mode-form">
                 <?php settings_fields( 'mk_analytics_mode' ); ?>
                 <div class="mk-panel" style="margin-bottom:16px;">
-                    <h2 class="mk-panel-title">&#9881; Modalità Operativa</h2>
+                    <h2 class="mk-panel-title">&#9881; <?php esc_html_e( 'Operation Mode', 'mk-analytics-data' ); ?></h2>
                     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
                         <div style="display:flex;gap:0;border:1px solid #ddd;border-radius:6px;overflow:hidden;">
                             <?php
                             $modes = array(
-                                'ga4_only'    => array('icon'=>'&#128200;', 'label'=>'Solo GA4',     'title'=>'Sincronizza solo i dati GA4, non importa da sorgenti remote'),
-                                'import_only' => array('icon'=>'&#128256;', 'label'=>'Solo Import',  'title'=>'Importa solo da sorgenti remote, non tocca GA4'),
-                                'both'        => array('icon'=>'&#9881;',   'label'=>'Entrambi',     'title'=>'Esegui sia GA4 sync che importazione remota'),
+                                'ga4_only'    => array('icon'=>'&#128200;', 'label'=> __( 'GA4 only',      'mk-analytics-data' ), 'title'=> __( 'Sync GA4 data only, do not import from remote sources', 'mk-analytics-data' ) ),
+                                'import_only' => array('icon'=>'&#128256;', 'label'=> __( 'Import only',   'mk-analytics-data' ), 'title'=> __( 'Import from remote sources only, do not sync GA4',     'mk-analytics-data' ) ),
+                                'both'        => array('icon'=>'&#9881;',   'label'=> __( 'Both',          'mk-analytics-data' ), 'title'=> __( 'Run both GA4 sync and remote import',                  'mk-analytics-data' ) ),
                             );
                             foreach ( $modes as $val => $cfg ) :
                                 $active = $op_mode === $val;
@@ -473,9 +482,9 @@ function mk_analytics_settings_page_html() {
                         <p class="description" style="margin:0;font-size:12px;">
                             <?php
                             $mode_descs = array(
-                                'ga4_only'    => 'Mostra solo impostazioni GA4. Import remoto disabilitato.',
-                                'import_only' => 'Mostra solo sorgenti remote. GA4 disabilitato.',
-                                'both'        => 'Tutte le funzionalità attive.',
+                                'ga4_only'    => __( 'Shows GA4 settings only. Remote import disabled.', 'mk-analytics-data' ),
+                                'import_only' => __( 'Shows remote sources only. GA4 disabled.',         'mk-analytics-data' ),
+                                'both'        => __( 'All features active.',                              'mk-analytics-data' ),
                             );
                             echo esc_html( $mode_descs[$op_mode] ?? '' );
                             ?>
@@ -489,28 +498,28 @@ function mk_analytics_settings_page_html() {
 
                 <!-- PANEL: GA4 -->
                 <div class="mk-panel" id="mk-panel-ga4">
-                    <h2 class="mk-panel-title">&#128200; GA4 Esportazione</h2>
+                    <h2 class="mk-panel-title">&#128200; <?php esc_html_e( 'GA4 Export', 'mk-analytics-data' ); ?></h2>
                     <table class="form-table" style="margin:0;">
                         <tr valign="top">
-                            <th scope="row" style="width:200px;">GA4 Property ID</th>
+                            <th scope="row" style="width:200px;"><?php esc_html_e( 'GA4 Property ID', 'mk-analytics-data' ); ?></th>
                             <td>
                                 <input type="text" name="mk_ga4_property_id"
                                        value="<?php echo esc_attr( get_option('mk_ga4_property_id') ); ?>"
                                        class="regular-text" />
-                                <p class="description">Numeric Property ID (solo cifre).</p>
+                                <p class="description"><?php esc_html_e( 'Numeric Property ID (digits only).', 'mk-analytics-data' ); ?></p>
                             </td>
                         </tr>
                         <tr valign="top">
-                            <th scope="row">Intervallo Dati GA4</th>
+                            <th scope="row"><?php esc_html_e( 'GA4 Date Range', 'mk-analytics-data' ); ?></th>
                             <td>
                                 <?php $date_range = get_option( MK_DATE_RANGE_OPT, '30daysAgo' ); ?>
                                 <div style="display:flex;gap:0;border:1px solid #ddd;border-radius:6px;overflow:hidden;max-width:380px;">
                                     <?php
                                     $ranges = array(
-                                        '1daysAgo'  => 'Ieri',
-                                        '7daysAgo'  => 'Ultimi 7 gg',
-                                        '14daysAgo' => 'Ultime 2 sett.',
-                                        '30daysAgo' => 'Ultimo mese',
+                                        '1daysAgo'  => __( 'Yesterday',    'mk-analytics-data' ),
+                                        '7daysAgo'  => __( 'Last 7 days',  'mk-analytics-data' ),
+                                        '14daysAgo' => __( 'Last 2 weeks', 'mk-analytics-data' ),
+                                        '30daysAgo' => __( 'Last 30 days', 'mk-analytics-data' ),
                                     );
                                     foreach ( $ranges as $val => $lbl ) :
                                         $active = $date_range === $val;
@@ -549,31 +558,30 @@ function mk_analytics_settings_page_html() {
                                 })();
                                 </script>
                                 <p class="description" style="margin-top:6px;">
-                                    Periodo di riferimento per il ranking e le metriche GA4.
-                                    La prossima sincronizzazione userà questo intervallo.
+                                    <?php esc_html_e( 'Reference period for GA4 ranking and metrics. The next sync will use this interval.', 'mk-analytics-data' ); ?>
                                 </p>
                             </td>
                         </tr>
 
                         <tr valign="top">
-                            <th scope="row">Service Account Credentials</th>
+                            <th scope="row"><?php esc_html_e( 'Service Account Credentials', 'mk-analytics-data' ); ?></th>
                             <td>
                                 <?php
                                 $has_creds = $has_file_creds || $has_option_creds;
                                 if ( $has_file_creds ) : ?>
                                     <p style="margin:0 0 8px;">
                                         <span style="color:#46b450;font-weight:700;">&#10003;</span>
-                                        File <code>credentials.json</code> presente nella cartella plugin.
+                                        <?php esc_html_e( 'File credentials.json found in plugin folder.', 'mk-analytics-data' ); ?>
                                     </p>
                                 <?php elseif ( $has_option_creds ) : ?>
                                     <p style="margin:0 0 8px;">
                                         <span style="color:#46b450;font-weight:700;">&#10003;</span>
-                                        Credenziali salvate nel database.
+                                        <?php esc_html_e( 'Credentials saved in database.', 'mk-analytics-data' ); ?>
                                     </p>
                                 <?php else : ?>
                                     <p style="margin:0 0 8px;">
                                         <span style="color:#dc3232;font-weight:700;">&#10007;</span>
-                                        Nessuna credenziale trovata.
+                                        <?php esc_html_e( 'No credentials found.', 'mk-analytics-data' ); ?>
                                     </p>
                                 <?php endif; ?>
 
@@ -584,18 +592,18 @@ function mk_analytics_settings_page_html() {
                                         var btn = document.getElementById('mk-cred-toggle-btn');
                                         var show = box.style.display === 'none';
                                         box.style.display = show ? 'block' : 'none';
-                                        btn.textContent = show ? '&#9650; Nascondi JSON' : '&#9660; Modifica / Sostituisci JSON';
-                                    })()">&#9660; Modifica / Sostituisci JSON</button>
+                                        btn.textContent = show ? '&#9650; <?php echo esc_js( __( 'Hide JSON', 'mk-analytics-data' ) ); ?>' : '&#9660; <?php echo esc_js( __( 'Edit / Replace JSON', 'mk-analytics-data' ) ); ?>';
+                                    })()">&#9660; <?php esc_html_e( 'Edit / Replace JSON', 'mk-analytics-data' ); ?></button>
                                 <div id="mk-cred-box" style="display:none;margin-top:8px;">
                                 <?php else : ?>
                                 <div id="mk-cred-box" style="margin-top:4px;">
                                 <?php endif; ?>
                                     <textarea name="mk_ga4_credentials_json" rows="5" class="large-text code"
-                                        placeholder='Incolla qui il contenuto del file credentials.json...'
+                                        placeholder='<?php echo esc_attr( __( 'Paste the credentials.json file contents here…', 'mk-analytics-data' ) ); ?>'
                                         style="font-family:monospace;font-size:11px;resize:vertical;"
                                     ><?php echo esc_textarea( $credentials_json ); ?></textarea>
                                     <p class="description" style="margin-top:4px;">
-                                        Incolla il JSON del Service Account. Se è presente il file fisico, quello ha priorità.
+                                        <?php esc_html_e( 'Paste the Service Account JSON. If the physical file is present, it takes priority.', 'mk-analytics-data' ); ?>
                                     </p>
                                 </div>
                             </td>
@@ -605,38 +613,37 @@ function mk_analytics_settings_page_html() {
                     <!-- ENDPOINT PROTECTION -->
                     <?php $api_auth = get_option( MK_API_AUTH_OPT, array('enabled'=>0,'username'=>'','password'=>'') ); ?>
                     <hr style="margin:20px 0 16px;">
-                    <h3 style="margin:0 0 12px;font-size:13px;">&#128274; Protezione Endpoint REST</h3>
+                    <h3 style="margin:0 0 12px;font-size:13px;">&#128274; <?php esc_html_e( 'REST Endpoint Protection', 'mk-analytics-data' ); ?></h3>
 
                     <!-- Endpoint reference -->
                     <div style="background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;padding:14px 16px;margin-bottom:16px;font-size:12px;">
-                        <p style="margin:0 0 10px;font-weight:600;color:#333;">Endpoint disponibili (base: <code>/wp-json/mk/v1/</code>)</p>
+                        <p style="margin:0 0 10px;font-weight:600;color:#333;"><?php esc_html_e( 'Available endpoints (base: /wp-json/mk/v1/)', 'mk-analytics-data' ); ?></p>
                         <table style="border-collapse:collapse;width:100%;">
                             <tr style="border-bottom:1px solid #e5e5e5;">
                                 <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /popular-links</td>
-                                <td style="padding:6px 0;color:#555;">Array di URL permalink dei top 10 post per visite. Utile per widget e sidebar.</td>
+                                <td style="padding:6px 0;color:#555;"><?php esc_html_e( 'Array of permalink URLs for the top 10 most-viewed posts. Useful for widgets and sidebars.', 'mk-analytics-data' ); ?></td>
                             </tr>
                             <tr style="border-bottom:1px solid #e5e5e5;">
                                 <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /popular-posts</td>
-                                <td style="padding:6px 0;color:#555;">Post completi (titolo, contenuto, immagine, URL, analytics GA4). Usato dall&rsquo;importatore remoto.</td>
+                                <td style="padding:6px 0;color:#555;"><?php esc_html_e( 'Full posts (title, content, image, URL, GA4 analytics). Used by the remote importer.', 'mk-analytics-data' ); ?></td>
                             </tr>
                             <tr>
                                 <td style="padding:6px 12px 6px 0;white-space:nowrap;font-family:monospace;color:#0073aa;">GET /analytics</td>
-                                <td style="padding:6px 0;color:#555;">Dataset GA4 completo (views, sessioni, utenti, bounce rate, tempo medio) con metadati di fetch.</td>
+                                <td style="padding:6px 0;color:#555;"><?php esc_html_e( 'Full GA4 dataset (views, sessions, users, bounce rate, avg time) with fetch metadata.', 'mk-analytics-data' ); ?></td>
                             </tr>
                         </table>
-                        <p style="margin:10px 0 0;color:#888;">Auth: header <code>Authorization: Basic base64(user:pass)</code> &mdash; oppure query string <code>?mk_user=&hellip;&amp;mk_pass=&hellip;</code></p>
+                        <p style="margin:10px 0 0;color:#888;"><?php esc_html_e( 'Auth: header', 'mk-analytics-data' ); ?> <code>Authorization: Basic base64(user:pass)</code> &mdash; <?php esc_html_e( 'or query string', 'mk-analytics-data' ); ?> <code>?mk_user=&hellip;&amp;mk_pass=&hellip;</code></p>
                     </div>
 
                     <p style="color:#555;font-size:13px;margin-bottom:12px;">
-                        Se abilitata, tutti e tre gli endpoint richiedono le credenziali configurate qui sotto.
-                        Imposta le stesse credenziali nella sezione <strong>Sorgenti Remote</strong> per accedere agli endpoint protetti di altri siti.
+                        <?php esc_html_e( 'When enabled, all three endpoints require the credentials configured below. Set the same credentials in the Remote Sources section to access protected endpoints on other sites.', 'mk-analytics-data' ); ?>
                     </p>
                     <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;">
                         <input type="checkbox" name="<?php echo MK_API_AUTH_OPT; ?>[enabled]" value="1"
                                id="mk-api-auth-toggle"
                                <?php checked( ! empty($api_auth['enabled']) ); ?>
                                onchange="document.getElementById('mk-api-auth-fields').style.display = this.checked ? 'block' : 'none';">
-                        <strong>Abilita protezione con password</strong>
+                        <strong><?php esc_html_e( 'Enable password protection', 'mk-analytics-data' ); ?></strong>
                     </label>
                     <div id="mk-api-auth-fields" style="display:<?php echo ! empty($api_auth['enabled']) ? 'block' : 'none'; ?>;padding:12px 14px;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;max-width:440px;">
                         <table style="border-collapse:collapse;">
@@ -655,26 +662,26 @@ function mk_analytics_settings_page_html() {
                         </table>
                         <p class="description" style="margin-top:8px;">
                             HTTP Basic: <code>Authorization: Basic base64(user:pass)</code><br>
-                            Oppure query string: <code>?mk_user=...&amp;mk_pass=...</code>
+                            <?php esc_html_e( 'Or query string:', 'mk-analytics-data' ); ?> <code>?mk_user=...&amp;mk_pass=...</code>
                         </p>
                     </div>
                 </div>
 
                 <!-- PANEL: REMOTE SOURCES -->
                 <div class="mk-panel" id="mk-panel-sources">
-                    <h2 class="mk-panel-title">&#128256; Sorgenti Remote (Importazione)</h2>
-                    <p style="margin:0 0 14px;color:#555;font-size:13px;">Endpoint JSON di altri siti da cui importare i post popolari.</p>
+                    <h2 class="mk-panel-title">&#128256; <?php esc_html_e( 'Remote Sources (Import)', 'mk-analytics-data' ); ?></h2>
+                    <p style="margin:0 0 14px;color:#555;font-size:13px;"><?php esc_html_e( 'JSON endpoints from other sites to import popular posts from.', 'mk-analytics-data' ); ?></p>
 
                     <!-- IMPORT MODE TOGGLE -->
                     <?php
                     $import_mode = get_option( MK_IMPORT_MODE_OPT, 'incremental' );
                     $import_modes = array(
-                        'incremental' => array( 'label' => '&#10133; Incrementale',      'desc' => 'Salta i post già presenti. I post importati in precedenza vengono conservati.' ),
-                        'fresh'       => array( 'label' => '&#128257; Fresh (Sostituisci)', 'desc' => 'Elimina tutti i post importati in precedenza, poi reimporta.' ),
+                        'incremental' => array( 'label' => '&#10133; ' . __( 'Incremental',        'mk-analytics-data' ), 'desc' => __( 'Skips already existing posts. Previously imported posts are kept.',             'mk-analytics-data' ) ),
+                        'fresh'       => array( 'label' => '&#128257; ' . __( 'Fresh (Replace)',    'mk-analytics-data' ), 'desc' => __( 'Deletes all previously imported posts, then re-imports.',                        'mk-analytics-data' ) ),
                     );
                     ?>
                     <div style="margin-bottom:18px;padding:12px 14px;background:#f9f9f9;border:1px solid #e5e5e5;border-radius:6px;max-width:560px;">
-                        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Modalità Importazione</div>
+                        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;"><?php esc_html_e( 'Import Mode', 'mk-analytics-data' ); ?></div>
                         <div style="display:flex;gap:0;border:1px solid #ddd;border-radius:6px;overflow:hidden;max-width:420px;" class="mk-import-mode-picker">
                             <?php foreach ( $import_modes as $val => $cfg ) :
                                 $active = $import_mode === $val;
@@ -711,7 +718,7 @@ function mk_analytics_settings_page_html() {
                         </p>
                         <?php if ( $import_mode === 'fresh' ) : ?>
                         <p style="margin:6px 0 0;font-size:12px;color:#dc3232;font-weight:600;">
-                            &#9888; Attenzione: la prossima importazione eliminerà definitivamente tutti i post importati.
+                            &#9888; <?php esc_html_e( 'Warning: the next import will permanently delete all imported posts.', 'mk-analytics-data' ); ?>
                         </p>
                         <?php endif; ?>
                     </div>
@@ -750,11 +757,11 @@ function mk_analytics_settings_page_html() {
                                        value="<?php echo esc_url($source['url']); ?>"
                                        class="large-text" style="width:100%;" />
                             </div>
-                            <button type="button" class="button button-small remove-source" style="margin-top:18px;color:#dc3232;border-color:#dc3232;">&#10005; Rimuovi</button>
+                            <button type="button" class="button button-small remove-source" style="margin-top:18px;color:#dc3232;border-color:#dc3232;">&#10005; <?php esc_html_e( 'Remove', 'mk-analytics-data' ); ?></button>
                         </div>
                         <div class="mk-src-meta">
                             <div>
-                                <span class="mk-src-label">Tipo di contenuto</span>
+                                <span class="mk-src-label"><?php esc_html_e( 'Content type', 'mk-analytics-data' ); ?></span>
                                 <select name="mk_remote_sources[<?php echo $index; ?>][post_type]"
                                         class="mk-pt-select" data-index="<?php echo $index; ?>"
                                         style="min-width:140px;">
@@ -768,11 +775,11 @@ function mk_analytics_settings_page_html() {
                             </div>
                             <div class="mk-cat-wrapper" data-index="<?php echo $index; ?>">
                                 <span class="mk-src-label">
-                                    <?php echo $src_tax ? esc_html($src_tax->labels->singular_name) : 'Categoria'; ?>
+                                    <?php echo $src_tax ? esc_html($src_tax->labels->singular_name) : esc_html__( 'Category', 'mk-analytics-data' ); ?>
                                 </span>
                                 <select name="mk_remote_sources[<?php echo $index; ?>][cat]"
                                         style="min-width:160px;">
-                                    <option value="0"><?php echo $src_tax ? '— Nessuna —' : '(nessuna tassonomia)'; ?></option>
+                                    <option value="0"><?php echo $src_tax ? esc_html__( '— None —', 'mk-analytics-data' ) : esc_html__( '(no taxonomy)', 'mk-analytics-data' ); ?></option>
                                     <?php if ( $src_tax && ! empty($src_terms) && ! is_wp_error($src_terms) ) : ?>
                                         <?php foreach ( $src_terms as $term ) : ?>
                                         <option value="<?php echo esc_attr($term->term_id); ?>"
@@ -786,7 +793,7 @@ function mk_analytics_settings_page_html() {
                         </div>
                         <div class="mk-src-auth">
                             <button type="button" class="mk-src-auth-toggle">
-                                <?php echo $has_auth ? '&#9650; Nascondi credenziali' : '&#128274; Credenziali accesso (opzionale)'; ?>
+                                <?php echo $has_auth ? '&#9650; ' . esc_html__( 'Hide credentials', 'mk-analytics-data' ) : '&#128274; ' . esc_html__( 'Access credentials (optional)', 'mk-analytics-data' ); ?>
                             </button>
                             <div class="mk-auth-fields" style="display:<?php echo $has_auth ? 'flex' : 'none'; ?>;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;">
                                 <div>
@@ -802,7 +809,7 @@ function mk_analytics_settings_page_html() {
                                            class="regular-text" autocomplete="off" style="width:160px;" />
                                 </div>
                                 <p class="description" style="margin:0;font-size:11px;">
-                                    Usate per HTTP Basic Auth sull'endpoint remoto.
+                                    <?php esc_html_e( 'Used for HTTP Basic Auth on the remote endpoint.', 'mk-analytics-data' ); ?>
                                 </p>
                             </div>
                         </div>
@@ -811,49 +818,49 @@ function mk_analytics_settings_page_html() {
                     </div><!-- /mk-sources-list -->
 
                     <p style="margin-top:10px;">
-                        <button type="button" class="button button-small" id="add-source-row">+ Aggiungi Sorgente</button>
+                        <button type="button" class="button button-small" id="add-source-row">+ <?php esc_html_e( 'Add Source', 'mk-analytics-data' ); ?></button>
                     </p>
 
                 </div>
 
-                <?php submit_button( 'Salva Configurazione' ); ?>
+                <?php submit_button( __( 'Save Configuration', 'mk-analytics-data' ) ); ?>
             </form>
 
             <!-- MANUAL ACTIONS ROW -->
             <div class="mk-panel" style="margin-top:4px;">
-                <h2 class="mk-panel-title">&#9881; Azioni Manuali</h2>
+                <h2 class="mk-panel-title">&#9881; <?php esc_html_e( 'Manual Actions', 'mk-analytics-data' ); ?></h2>
                 <div class="mk-action-cards">
 
                     <div class="mk-action-card">
-                        <strong>&#128200; Sincronizza GA4</strong>
-                        <p>Aggiorna subito i post popolari da Google Analytics 4.</p>
+                        <strong>&#128200; <?php esc_html_e( 'Sync GA4', 'mk-analytics-data' ); ?></strong>
+                        <p><?php esc_html_e( 'Refresh popular posts from Google Analytics 4 now.', 'mk-analytics-data' ); ?></p>
                         <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_manual_sync'), 'mk_sync_action' ); ?>"
-                           class="button button-primary" style="align-self:flex-start;">Sincronizza ora</a>
+                           class="button button-primary" style="align-self:flex-start;"><?php esc_html_e( 'Sync now', 'mk-analytics-data' ); ?></a>
                     </div>
 
                     <div class="mk-action-card">
-                        <strong>&#128256; Importazione Remota</strong>
-                        <p>Scarica subito i post da tutte le sorgenti configurate.</p>
+                        <strong>&#128256; <?php esc_html_e( 'Remote Import', 'mk-analytics-data' ); ?></strong>
+                        <p><?php esc_html_e( 'Download posts from all configured sources now.', 'mk-analytics-data' ); ?></p>
                         <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_manual_import'), 'mk_import_action' ); ?>"
-                           class="button button-secondary" style="align-self:flex-start;">Avvia Importazione</a>
+                           class="button button-secondary" style="align-self:flex-start;"><?php esc_html_e( 'Run Import', 'mk-analytics-data' ); ?></a>
                     </div>
 
                     <div class="mk-action-card mk-action-danger">
-                        <strong>&#128465; Cache Post Popolari</strong>
+                        <strong>&#128465; <?php esc_html_e( 'Popular Posts Cache', 'mk-analytics-data' ); ?></strong>
                         <?php
                         $ck_fast  = get_transient( MK_CACHE_KEY );
                         $ck_db    = get_option( MK_CACHE_DB_OPTION, false );
                         $ck_db_ok = $ck_db && ! empty($ck_db['ids']) && isset($ck_db['expires']) && time() < (int)$ck_db['expires'];
                         if ( $ck_fast !== false && ! empty($ck_fast) ) : ?>
-                            <p><span style="color:#46b450;">&#10003;</span> Transient attivo &mdash; <strong><?php echo count($ck_fast); ?></strong> post.</p>
+                            <p><span style="color:#46b450;">&#10003;</span> <?php echo sprintf( esc_html__( 'Active transient — %d posts.', 'mk-analytics-data' ), count($ck_fast) ); ?></p>
                         <?php elseif ( $ck_db_ok ) : ?>
-                            <p><span style="color:#ffb900;">&#9888;</span> DB fallback attivo &mdash; <strong><?php echo count($ck_db['ids']); ?></strong> post (Redis flush?).</p>
+                            <p><span style="color:#ffb900;">&#9888;</span> <?php echo sprintf( esc_html__( 'DB fallback active — %d posts (Redis flush?).', 'mk-analytics-data' ), count($ck_db['ids']) ); ?></p>
                         <?php else : ?>
-                            <p style="color:#888;font-style:italic;">Cache vuota.</p>
+                            <p style="color:#888;font-style:italic;"><?php esc_html_e( 'Empty cache.', 'mk-analytics-data' ); ?></p>
                         <?php endif; ?>
                         <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_clear_transient'), 'mk_clear_transient_action' ); ?>"
                            class="button" style="align-self:flex-start;border-color:#dc3232;color:#dc3232;"
-                           onclick="return confirm('Svuotare la cache?');">Svuota Cache</a>
+                           onclick="return confirm('<?php echo esc_js( __( 'Clear the cache?', 'mk-analytics-data' ) ); ?>');"><?php esc_html_e( 'Clear Cache', 'mk-analytics-data' ); ?></a>
                     </div>
 
                 </div>
@@ -865,8 +872,8 @@ function mk_analytics_settings_page_html() {
         ══════════════════════════════════ -->
         <div id="mk-tab-cron" class="mk-tab-content" style="display:none;">
 
-            <h2 class="title">Gestione Cron Job</h2>
-            <p style="color:#555;margin-bottom:20px;">Configura e controlla i due job automatici in modo indipendente.</p>
+            <h2 class="title"><?php esc_html_e( 'Cron Job Management', 'mk-analytics-data' ); ?></h2>
+            <p style="color:#555;margin-bottom:20px;"><?php esc_html_e( 'Configure and control the two automatic jobs independently.', 'mk-analytics-data' ); ?></p>
 
             <div class="mk-cron-cards">
 
@@ -879,40 +886,40 @@ function mk_analytics_settings_page_html() {
                     $next_fmt = get_date_from_gmt( date('Y-m-d H:i:s', $cron['next_ts']), 'd/m/Y H:i:s' );
                 ?>
                 <div style="background:#edfaee;border-left:3px solid #46b450;padding:10px 14px;margin-bottom:14px;border-radius:6px;">
-                    <strong><span style="color:#46b450;">&#9679;</span> ATTIVO</strong>
-                    &mdash; ogni <strong><?php echo esc_html($cron['interval_h']); ?>h</strong>,
-                    prossima <strong>tra <?php echo esc_html($cron['next_human']); ?></strong>
+                    <strong><span style="color:#46b450;">&#9679;</span> <?php esc_html_e( 'ACTIVE', 'mk-analytics-data' ); ?></strong>
+                    &mdash; <?php echo sprintf( esc_html__( 'every %dh', 'mk-analytics-data' ), $cron['interval_h'] ); ?>,
+                    <?php echo sprintf( esc_html__( 'next in %s', 'mk-analytics-data' ), '<strong>' . esc_html($cron['next_human']) . '</strong>' ); ?>
                     <span style="color:#888;font-size:11px;">(<?php echo esc_html($next_fmt); ?>)</span>
                 </div>
                 <?php else : ?>
                 <div style="background:#fef7f7;border-left:3px solid #dc3232;padding:10px 14px;margin-bottom:14px;border-radius:6px;">
-                    <strong><span style="color:#dc3232;">&#9679;</span> NON ATTIVO</strong>
-                    &mdash; recupero automatico GA4 non pianificato.
+                    <strong><span style="color:#dc3232;">&#9679;</span> <?php esc_html_e( 'INACTIVE', 'mk-analytics-data' ); ?></strong>
+                    &mdash; <?php esc_html_e( 'automatic GA4 sync not scheduled.', 'mk-analytics-data' ); ?>
                 </div>
                 <?php endif; ?>
                 <form action="options.php" method="post" style="margin-bottom:14px;">
                     <?php settings_fields( 'mk_analytics_cron' ); ?>
                     <label style="display:flex;align-items:center;gap:8px;">
-                        <span style="color:#555;white-space:nowrap;">Ogni</span>
+                        <span style="color:#555;white-space:nowrap;"><?php esc_html_e( 'Every', 'mk-analytics-data' ); ?></span>
                         <input type="number" name="<?php echo MK_CRON_OPTION; ?>"
                                value="<?php echo esc_attr( $cron['interval_h'] ); ?>"
                                min="1" max="168" step="1" class="small-text" style="width:65px;" />
-                        <span style="color:#555;">ore</span>
+                        <span style="color:#555;"><?php esc_html_e( 'hours', 'mk-analytics-data' ); ?></span>
                     </label>
                     <p style="margin:10px 0 0;">
-                        <?php submit_button( 'Salva Intervallo GA4', 'secondary', 'submit_ga4_interval', false ); ?>
+                        <?php submit_button( __( 'Save GA4 Interval', 'mk-analytics-data' ), 'secondary', 'submit_ga4_interval', false ); ?>
                     </p>
                 </form>
                 <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_cron_schedule'), 'mk_cron_schedule_action' ); ?>"
                    class="button button-primary" style="margin-right:6px;">
-                    &#9654;&nbsp;<?php echo $cron['active'] ? 'Ripianifica' : 'Attiva'; ?>
+                    &#9654;&nbsp;<?php echo $cron['active'] ? esc_html__( 'Reschedule', 'mk-analytics-data' ) : esc_html__( 'Activate', 'mk-analytics-data' ); ?>
                 </a>
                 <?php if ( $cron['active'] ) : ?>
                 <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_cron_delete'), 'mk_cron_delete_action' ); ?>"
                    class="button" style="border-color:#dc3232;color:#dc3232;"
-                   onclick="return confirm('Eliminare il Cron GA4 Sync?');">&#128465;&nbsp;Elimina</a>
+                   onclick="return confirm('<?php echo esc_js( __( 'Delete the GA4 Sync Cron?', 'mk-analytics-data' ) ); ?>');">&#128465;&nbsp;<?php esc_html_e( 'Delete', 'mk-analytics-data' ); ?></a>
                 <?php else : ?>
-                <button class="button" disabled style="opacity:.4;cursor:not-allowed;">&#128465;&nbsp;Elimina</button>
+                <button class="button" disabled style="opacity:.4;cursor:not-allowed;">&#128465;&nbsp;<?php esc_html_e( 'Delete', 'mk-analytics-data' ); ?></button>
                 <?php endif; ?>
             </div>
 
@@ -925,40 +932,40 @@ function mk_analytics_settings_page_html() {
                     $next_imp_fmt = get_date_from_gmt( date('Y-m-d H:i:s', $cron_import['next_ts']), 'd/m/Y H:i:s' );
                 ?>
                 <div style="background:#edfaee;border-left:3px solid #46b450;padding:10px 14px;margin-bottom:14px;border-radius:6px;">
-                    <strong><span style="color:#46b450;">&#9679;</span> ATTIVO</strong>
-                    &mdash; ogni <strong><?php echo esc_html($cron_import['interval_h']); ?>h</strong>,
-                    prossima <strong>tra <?php echo esc_html($cron_import['next_human']); ?></strong>
+                    <strong><span style="color:#46b450;">&#9679;</span> <?php esc_html_e( 'ACTIVE', 'mk-analytics-data' ); ?></strong>
+                    &mdash; <?php echo sprintf( esc_html__( 'every %dh', 'mk-analytics-data' ), $cron_import['interval_h'] ); ?>,
+                    <?php echo sprintf( esc_html__( 'next in %s', 'mk-analytics-data' ), '<strong>' . esc_html($cron_import['next_human']) . '</strong>' ); ?>
                     <span style="color:#888;font-size:11px;">(<?php echo esc_html($next_imp_fmt); ?>)</span>
                 </div>
                 <?php else : ?>
                 <div style="background:#fef7f7;border-left:3px solid #dc3232;padding:10px 14px;margin-bottom:14px;border-radius:6px;">
-                    <strong><span style="color:#dc3232;">&#9679;</span> NON ATTIVO</strong>
-                    &mdash; importazione automatica remota non pianificata.
+                    <strong><span style="color:#dc3232;">&#9679;</span> <?php esc_html_e( 'INACTIVE', 'mk-analytics-data' ); ?></strong>
+                    &mdash; <?php esc_html_e( 'automatic remote import not scheduled.', 'mk-analytics-data' ); ?>
                 </div>
                 <?php endif; ?>
                 <form action="options.php" method="post" style="margin-bottom:14px;">
                     <?php settings_fields( 'mk_analytics_import' ); ?>
                     <label style="display:flex;align-items:center;gap:8px;">
-                        <span style="color:#555;white-space:nowrap;">Ogni</span>
+                        <span style="color:#555;white-space:nowrap;"><?php esc_html_e( 'Every', 'mk-analytics-data' ); ?></span>
                         <input type="number" name="<?php echo MK_IMPORT_CRON_OPTION; ?>"
                                value="<?php echo esc_attr( $cron_import['interval_h'] ); ?>"
                                min="1" max="168" step="1" class="small-text" style="width:65px;" />
-                        <span style="color:#555;">ore</span>
+                        <span style="color:#555;"><?php esc_html_e( 'hours', 'mk-analytics-data' ); ?></span>
                     </label>
                     <p style="margin:10px 0 0;">
-                        <?php submit_button( 'Salva Intervallo Import', 'secondary', 'submit_import_interval', false ); ?>
+                        <?php submit_button( __( 'Save Import Interval', 'mk-analytics-data' ), 'secondary', 'submit_import_interval', false ); ?>
                     </p>
                 </form>
                 <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_import_cron_schedule'), 'mk_import_cron_schedule_action' ); ?>"
                    class="button button-primary" style="margin-right:6px;">
-                    &#9654;&nbsp;<?php echo $cron_import['active'] ? 'Ripianifica' : 'Attiva'; ?>
+                    &#9654;&nbsp;<?php echo $cron_import['active'] ? esc_html__( 'Reschedule', 'mk-analytics-data' ) : esc_html__( 'Activate', 'mk-analytics-data' ); ?>
                 </a>
                 <?php if ( $cron_import['active'] ) : ?>
                 <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_import_cron_delete'), 'mk_import_cron_delete_action' ); ?>"
                    class="button" style="border-color:#dc3232;color:#dc3232;"
-                   onclick="return confirm('Eliminare il Cron Import Remoto?');">&#128465;&nbsp;Elimina</a>
+                   onclick="return confirm('<?php echo esc_js( __( 'Delete the Remote Import Cron?', 'mk-analytics-data' ) ); ?>');">&#128465;&nbsp;<?php esc_html_e( 'Delete', 'mk-analytics-data' ); ?></a>
                 <?php else : ?>
-                <button class="button" disabled style="opacity:.4;cursor:not-allowed;">&#128465;&nbsp;Elimina</button>
+                <button class="button" disabled style="opacity:.4;cursor:not-allowed;">&#128465;&nbsp;<?php esc_html_e( 'Delete', 'mk-analytics-data' ); ?></button>
                 <?php endif; ?>
             </div>
 
@@ -971,19 +978,19 @@ function mk_analytics_settings_page_html() {
         ══════════════════════════════════ -->
         <div id="mk-tab-debug" class="mk-tab-content" style="display:none;">
 
-            <h2 class="title">Debug &amp; Log</h2>
+            <h2 class="title"><?php esc_html_e( 'Debug &amp; Log', 'mk-analytics-data' ); ?></h2>
 
             <!-- 1. DEBUG TOGGLE -->
             <div class="mk-panel" style="max-width:620px;margin-bottom:20px;">
-                <h2 class="mk-panel-title">&#128295; Modalità Debug</h2>
+                <h2 class="mk-panel-title">&#128295; <?php esc_html_e( 'Debug Mode', 'mk-analytics-data' ); ?></h2>
                 <?php if ( $debug_on ) : ?>
                 <div style="background:#fff8e5;border:1px solid #ffb900;border-radius:6px;padding:10px 14px;margin-bottom:14px;">
-                    <strong style="color:#826200;">&#9888; Debug ATTIVO</strong> —
-                    <span style="color:#555;">tutte le operazioni vengono registrate. Disabilita in produzione.</span>
+                    <strong style="color:#826200;">&#9888; <?php esc_html_e( 'Debug ACTIVE', 'mk-analytics-data' ); ?></strong> —
+                    <span style="color:#555;"><?php esc_html_e( 'all operations are logged. Disable in production.', 'mk-analytics-data' ); ?></span>
                 </div>
                 <?php else : ?>
                 <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:10px 14px;margin-bottom:14px;">
-                    <strong>Debug DISATTIVO</strong> — <span style="color:#555;">nessun log viene scritto.</span>
+                    <strong><?php esc_html_e( 'Debug INACTIVE', 'mk-analytics-data' ); ?></strong> — <span style="color:#555;"><?php esc_html_e( 'no log is written.', 'mk-analytics-data' ); ?></span>
                 </div>
                 <?php endif; ?>
                 <form action="options.php" method="post">
@@ -1002,11 +1009,11 @@ function mk_analytics_settings_page_html() {
                             </span>
                         </div>
                         <span style="font-size:14px;font-weight:600;">
-                            <?php echo $debug_on ? 'Disabilita Debug' : 'Abilita Debug'; ?>
+                            <?php echo $debug_on ? esc_html__( 'Disable Debug', 'mk-analytics-data' ) : esc_html__( 'Enable Debug', 'mk-analytics-data' ); ?>
                         </span>
                     </label>
                     <p style="margin:12px 0 0;">
-                        <?php submit_button( 'Salva impostazione Debug', 'secondary', 'submit_debug', false ); ?>
+                        <?php submit_button( __( 'Save Debug Setting', 'mk-analytics-data' ), 'secondary', 'submit_debug', false ); ?>
                     </p>
                 </form>
             </div>
@@ -1014,30 +1021,30 @@ function mk_analytics_settings_page_html() {
             <!-- 2. LOG TABLE -->
             <div class="mk-panel" style="max-width:960px;margin-bottom:20px;">
                 <h2 class="mk-panel-title" style="display:flex;align-items:center;justify-content:space-between;">
-                    <span>&#128220; Log Eventi <span style="font-weight:400;font-size:11px;color:#aaa;text-transform:none;letter-spacing:0;">&nbsp;ultimi <?php echo MK_LOG_MAX; ?> &mdash; più recente in cima</span></span>
+                    <span>&#128220; <?php esc_html_e( 'Event Log', 'mk-analytics-data' ); ?> <span style="font-weight:400;font-size:11px;color:#aaa;text-transform:none;letter-spacing:0;">&nbsp;<?php echo sprintf( esc_html__( 'last %d — newest first', 'mk-analytics-data' ), MK_LOG_MAX ); ?></span></span>
                     <?php if ( ! empty($log) ) : ?>
                     <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_clear_log'), 'mk_clear_log_action' ); ?>"
                        class="button button-small" style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;"
-                       onclick="return confirm('Svuotare il log?');">Svuota Log</a>
+                       onclick="return confirm('<?php echo esc_js( __( 'Clear the log?', 'mk-analytics-data' ) ); ?>');"><?php esc_html_e( 'Clear Log', 'mk-analytics-data' ); ?></a>
                     <?php endif; ?>
                 </h2>
                 <?php if ( ! $debug_on ) : ?>
                     <p style="color:#826200;background:#fff8e5;padding:10px 12px;border-radius:6px;font-size:13px;">
-                        &#9888; Debug disattivo: nessun nuovo evento sarà registrato.
+                        &#9888; <?php esc_html_e( 'Debug inactive: no new events will be logged.', 'mk-analytics-data' ); ?>
                     </p>
                 <?php endif; ?>
                 <?php if ( empty($log) ) : ?>
-                    <p style="color:#aaa;font-style:italic;font-size:13px;">Nessun evento nel log.</p>
+                    <p style="color:#aaa;font-style:italic;font-size:13px;"><?php esc_html_e( 'No events in log.', 'mk-analytics-data' ); ?></p>
                 <?php else : ?>
                 <div style="overflow-x:auto;border-radius:6px;border:1px solid #eee;">
                 <table class="widefat" style="font-size:12px;font-family:monospace;border:none;">
                     <thead>
                         <tr style="background:#fafafa;">
-                            <th style="width:140px;">Timestamp</th>
-                            <th style="width:110px;">Context</th>
-                            <th style="width:58px;">Level</th>
-                            <th>Messaggio</th>
-                            <th style="width:260px;">Dati</th>
+                            <th style="width:140px;"><?php esc_html_e( 'Timestamp', 'mk-analytics-data' ); ?></th>
+                            <th style="width:110px;"><?php esc_html_e( 'Context', 'mk-analytics-data' ); ?></th>
+                            <th style="width:58px;"><?php esc_html_e( 'Level', 'mk-analytics-data' ); ?></th>
+                            <th><?php esc_html_e( 'Message', 'mk-analytics-data' ); ?></th>
+                            <th style="width:260px;"><?php esc_html_e( 'Data', 'mk-analytics-data' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1063,9 +1070,9 @@ function mk_analytics_settings_page_html() {
             <!-- 3. SYSTEM SNAPSHOT -->
             <div class="mk-panel" style="max-width:760px;">
                 <h2 class="mk-panel-title" style="display:flex;align-items:center;justify-content:space-between;">
-                    <span>&#128203; Snapshot Sistema</span>
+                    <span>&#128203; <?php esc_html_e( 'System Snapshot', 'mk-analytics-data' ); ?></span>
                     <a href="<?php echo wp_nonce_url( admin_url('admin-post.php?action=mk_run_snapshot'), 'mk_run_snapshot_action' ); ?>"
-                       class="button button-small" style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;">&#8635; Aggiorna</a>
+                       class="button button-small" style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;">&#8635; <?php esc_html_e( 'Refresh', 'mk-analytics-data' ); ?></a>
                 </h2>
                 <?php
                 $snap = mk_system_snapshot();
@@ -1075,9 +1082,9 @@ function mk_analytics_settings_page_html() {
                 <table class="widefat striped" style="border:none;margin:0;">
                     <thead>
                         <tr style="background:#fafafa;">
-                            <th style="width:210px;">Componente</th>
-                            <th style="width:70px;">Stato</th>
-                            <th>Dettaglio</th>
+                            <th style="width:210px;"><?php esc_html_e( 'Component', 'mk-analytics-data' ); ?></th>
+                            <th style="width:70px;"><?php esc_html_e( 'Status', 'mk-analytics-data' ); ?></th>
+                            <th><?php esc_html_e( 'Detail', 'mk-analytics-data' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1101,29 +1108,42 @@ function mk_analytics_settings_page_html() {
         ══════════════════════════════════ -->
         <div id="mk-tab-guide" class="mk-tab-content"
              style="display:none;max-width:800px;background:#fff;padding:24px;border:1px solid #ddd;border-radius:8px;margin-top:20px;">
-            <h2 style="margin-top:0;">Guida alla creazione del progetto Google Cloud (GCP)</h2>
-            <p>Per far funzionare il modulo GA4, puoi caricare il file <code>credentials.json</code> tramite FTP
-               <strong>oppure</strong> incollarne il contenuto direttamente nella scheda Configurazione.</p>
+            <h2 style="margin-top:0;"><?php esc_html_e( 'Guide: creating the Google Cloud project (GCP)', 'mk-analytics-data' ); ?></h2>
+            <p><?php esc_html_e( 'To enable the GA4 module, you can upload the credentials.json file via FTP', 'mk-analytics-data' ); ?>
+               <strong><?php esc_html_e( 'or', 'mk-analytics-data' ); ?></strong> <?php esc_html_e( 'paste its contents directly in the Configuration tab.', 'mk-analytics-data' ); ?></p>
             <ol style="line-height:2;">
-                <li>Vai sulla <strong><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></strong>.</li>
-                <li>Crea un nuovo progetto (es. "Meksone Analytics").</li>
-                <li>Nel menu laterale, vai su <strong>APIs &amp; Services &gt; Library</strong>.</li>
-                <li>Cerca e abilita la <strong>"Google Analytics Data API"</strong>.</li>
-                <li>Vai su <strong>APIs &amp; Services &gt; Credentials</strong>.</li>
-                <li>Clicca su <strong>Create Credentials</strong> e scegli <strong>Service Account</strong>.</li>
-                <li>Segui i passaggi e clicca su <strong>Done</strong>.</li>
-                <li>Nella lista dei Service Accounts, clicca sull'email appena creata.</li>
-                <li>Vai nella tab <strong>Keys</strong>, clicca su <strong>Add Key &gt; Create new key</strong> e scegli <strong>JSON</strong>.</li>
-                <li><strong>Opzione A (FTP):</strong> Rinomina il file in <code>credentials.json</code> e caricalo in:<br>
+                <li><?php esc_html_e( 'Go to the', 'mk-analytics-data' ); ?> <strong><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></strong>.</li>
+                <li><?php esc_html_e( 'Create a new project (e.g. "My Analytics").', 'mk-analytics-data' ); ?></li>
+                <li><?php esc_html_e( 'In the side menu, go to', 'mk-analytics-data' ); ?> <strong>APIs &amp; Services &gt; Library</strong>.</li>
+                <li><?php esc_html_e( 'Search for and enable the', 'mk-analytics-data' ); ?> <strong>"Google Analytics Data API"</strong>.</li>
+                <li><?php esc_html_e( 'Go to', 'mk-analytics-data' ); ?> <strong>APIs &amp; Services &gt; Credentials</strong>.</li>
+                <li><?php esc_html_e( 'Click', 'mk-analytics-data' ); ?> <strong>Create Credentials</strong> <?php esc_html_e( 'and choose', 'mk-analytics-data' ); ?> <strong>Service Account</strong>.</li>
+                <li><?php esc_html_e( 'Follow the steps and click', 'mk-analytics-data' ); ?> <strong>Done</strong>.</li>
+                <li><?php esc_html_e( 'In the Service Accounts list, click the email you just created.', 'mk-analytics-data' ); ?></li>
+                <li><?php esc_html_e( 'Go to the', 'mk-analytics-data' ); ?> <strong>Keys</strong> <?php esc_html_e( 'tab, click', 'mk-analytics-data' ); ?> <strong>Add Key &gt; Create new key</strong> <?php esc_html_e( 'and choose', 'mk-analytics-data' ); ?> <strong>JSON</strong>.</li>
+                <li><strong><?php esc_html_e( 'Option A (FTP):', 'mk-analytics-data' ); ?></strong> <?php esc_html_e( 'Rename the file to credentials.json and upload it to:', 'mk-analytics-data' ); ?><br>
                     <code>/wp-content/plugins/mk-analytics-data/credentials.json</code></li>
-                <li><strong>Opzione B (Database):</strong> Apri il JSON con un editor, copialo e incollalo nel campo della scheda <em>Configurazione</em>.</li>
-                <li><strong>IMPORTANTE:</strong> Aggiungi l'email del Service Account come Viewer in
+                <li><strong><?php esc_html_e( 'Option B (Database):', 'mk-analytics-data' ); ?></strong> <?php esc_html_e( 'Open the JSON in an editor, copy it and paste it into the Configuration tab field.', 'mk-analytics-data' ); ?></li>
+                <li><strong><?php esc_html_e( 'IMPORTANT:', 'mk-analytics-data' ); ?></strong> <?php esc_html_e( 'Add the Service Account email as a Viewer in', 'mk-analytics-data' ); ?>
                     <strong>GA4 &gt; Admin &gt; Property Access Management</strong>.</li>
             </ol>
         </div>
 
         <!-- JAVASCRIPT -->
         <script>
+        var mkL10n = <?php echo wp_json_encode( array(
+            'category'          => __( 'Category',                          'mk-analytics-data' ),
+            'noneOption'        => __( '— None —',                          'mk-analytics-data' ),
+            'noTaxonomy'        => __( '(no taxonomy)',                     'mk-analytics-data' ),
+            'loadError'         => __( 'Loading error',                     'mk-analytics-data' ),
+            'hideCredentials'   => __( 'Hide credentials',                  'mk-analytics-data' ),
+            'accessCredentials' => __( 'Access credentials (optional)',     'mk-analytics-data' ),
+            'remove'            => __( 'Remove',                            'mk-analytics-data' ),
+            'contentType'       => __( 'Content type',                      'mk-analytics-data' ),
+            'modeGa4Only'       => __( 'Shows GA4 settings only. Remote import disabled.', 'mk-analytics-data' ),
+            'modeImportOnly'    => __( 'Shows remote sources only. GA4 disabled.',         'mk-analytics-data' ),
+            'modeBoth'          => __( 'All features active.',              'mk-analytics-data' ),
+        ) ); ?>;
         (function(){
             var tabMap = {
                 '#settings' : 'mk-tab-settings',
@@ -1169,9 +1189,9 @@ function mk_analytics_settings_page_html() {
 
                 // Update description text
                 var descs = {
-                    'ga4_only':    'Mostra solo impostazioni GA4. Import remoto disabilitato.',
-                    'import_only': 'Mostra solo sorgenti remote. GA4 disabilitato.',
-                    'both':        'Tutte le funzionalità attive.'
+                    'ga4_only':    mkL10n.modeGa4Only,
+                    'import_only': mkL10n.modeImportOnly,
+                    'both':        mkL10n.modeBoth
                 };
                 var descEl = document.querySelector('#mk-mode-form .description');
                 if (descEl) descEl.textContent = descs[mode] || '';
@@ -1210,15 +1230,15 @@ function mk_analytics_settings_page_html() {
                 var pt     = e.target.value;
                 var wrap   = document.querySelector('.mk-cat-wrapper[data-index="'+idx+'"]');
                 if (!wrap) return;
-                wrap.innerHTML = '<span class="mk-src-label">Categoria</span>'
-                               + '<span style="color:#888;font-size:12px;">caricamento...</span>';
+                wrap.innerHTML = '<span class="mk-src-label">' + mkL10n.category + '</span>'
+                               + '<span style="color:#888;font-size:12px;">…</span>';
                 fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=mk_get_terms_for_pt&post_type=' + encodeURIComponent(pt) + '&nonce=<?php echo wp_create_nonce('mk_terms_nonce'); ?>')
                     .then(function(r){ return r.json(); })
                     .then(function(data) {
-                        var label = data.tax_label || 'Categoria';
+                        var label = data.tax_label || mkL10n.category;
                         var html  = '<span class="mk-src-label">' + label + '</span>';
                         html += '<select name="mk_remote_sources['+idx+'][cat]" style="min-width:160px;">';
-                        html += '<option value="0">— Nessuna —</option>';
+                        html += '<option value="0">' + mkL10n.noneOption + '</option>';
                         if (data.terms && data.terms.length) {
                             data.terms.forEach(function(t){
                                 html += '<option value="'+t.id+'">'+t.label+'</option>';
@@ -1227,7 +1247,7 @@ function mk_analytics_settings_page_html() {
                         html += '</select>';
                         wrap.innerHTML = html;
                     })
-                    .catch(function(){ wrap.innerHTML = '<span class="mk-src-label">Categoria</span><span style="color:#dc3232;font-size:12px;">Errore caricamento</span>'; });
+                    .catch(function(){ wrap.innerHTML = '<span class="mk-src-label">' + mkL10n.category + '</span><span style="color:#dc3232;font-size:12px;">' + mkL10n.loadError + '</span>'; });
             });
 
             // ── Add source row — monotonic counter ────────────────────────────
@@ -1264,12 +1284,12 @@ function mk_analytics_settings_page_html() {
                     var authBtn = document.createElement('button');
                     authBtn.type = 'button';
                     authBtn.className = 'mk-src-auth-toggle';
-                    authBtn.textContent = '\uD83D\uDD12 Credenziali accesso (opzionale)';
+                    authBtn.textContent = '\uD83D\uDD12 ' + mkL10n.accessCredentials;
                     authBtn.addEventListener('click', function() {
                         var box  = this.parentNode.querySelector('.mk-auth-fields');
                         var show = box.style.display === 'none';
                         box.style.display = show ? 'flex' : 'none';
-                        this.textContent  = show ? '\u25B2 Nascondi credenziali' : '\uD83D\uDD12 Credenziali accesso (opzionale)';
+                        this.textContent  = show ? '\u25B2 ' + mkL10n.hideCredentials : '\uD83D\uDD12 ' + mkL10n.accessCredentials;
                     });
 
                     div.innerHTML =
@@ -1278,18 +1298,18 @@ function mk_analytics_settings_page_html() {
                         + '<span class="mk-src-label">URL Endpoint (JSON)</span>'
                         + '<input type="url" name="mk_remote_sources[' + idx + '][url]" value="" class="large-text" style="width:100%;" />'
                         + '</div>'
-                        + '<button type="button" class="button button-small remove-source" style="margin-top:18px;color:#dc3232;border-color:#dc3232;">\u2715 Rimuovi</button>'
+                        + '<button type="button" class="button button-small remove-source" style="margin-top:18px;color:#dc3232;border-color:#dc3232;">\u2715 ' + mkL10n.remove + '</button>'
                         + '</div>'
                         + '<div class="mk-src-meta" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0;">'
                         + '<div>'
-                        + '<span class="mk-src-label">Tipo di contenuto</span>'
+                        + '<span class="mk-src-label">' + mkL10n.contentType + '</span>'
                         + '<select name="mk_remote_sources[' + idx + '][post_type]" class="mk-pt-select" data-index="' + idx + '" style="min-width:140px;">'
                         + mkPostTypeOptions
                         + '</select>'
                         + '</div>'
                         + '<div class="mk-cat-wrapper" data-index="' + idx + '">'
-                        + '<span class="mk-src-label">Categoria</span>'
-                        + '<select name="mk_remote_sources[' + idx + '][cat]" style="min-width:160px;"><option value="0">\u2014 Nessuna \u2014</option></select>'
+                        + '<span class="mk-src-label">' + mkL10n.category + '</span>'
+                        + '<select name="mk_remote_sources[' + idx + '][cat]" style="min-width:160px;"><option value="0">' + mkL10n.noneOption + '</option></select>'
                         + '</div>'
                         + '</div>'
                         + '<div class="mk-src-auth" style="margin-top:6px;">'
@@ -1318,7 +1338,7 @@ function mk_analytics_settings_page_html() {
                     if (!box) return;
                     var show = box.style.display === 'none';
                     box.style.display = show ? 'flex' : 'none';
-                    e.target.textContent = show ? '\u25B2 Nascondi credenziali' : '\uD83D\uDD12 Credenziali accesso (opzionale)';
+                    e.target.textContent = show ? '\u25B2 ' + mkL10n.hideCredentials : '\uD83D\uDD12 ' + mkL10n.accessCredentials;
                 }
             });
         })();
@@ -1337,16 +1357,16 @@ function mk_system_snapshot() {
     // --- Credentials ---
     $cred_file = plugin_dir_path( __FILE__ ) . 'credentials.json';
     if ( file_exists($cred_file) ) {
-        $rows[] = array('label' => 'Credentials', 'status' => 'OK',   'detail' => 'File credentials.json trovato nella cartella plugin.');
+        $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'OK',   'detail' => __( 'File credentials.json found in plugin folder.', 'mk-analytics-data' ));
     } elseif ( ! empty( get_option('mk_ga4_credentials_json') ) ) {
         $decoded = json_decode( get_option('mk_ga4_credentials_json'), true );
         if ( json_last_error() === JSON_ERROR_NONE ) {
-            $rows[] = array('label' => 'Credentials', 'status' => 'OK',   'detail' => 'JSON credenziali valido salvato nel database.');
+            $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'OK',   'detail' => __( 'Valid credentials JSON saved in database.', 'mk-analytics-data' ));
         } else {
-            $rows[] = array('label' => 'Credentials', 'status' => 'FAIL', 'detail' => 'JSON nel database non valido: ' . json_last_error_msg());
+            $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'FAIL', 'detail' => sprintf( __( 'Invalid JSON in database: %s', 'mk-analytics-data' ), json_last_error_msg() ));
         }
     } else {
-        $rows[] = array('label' => 'Credentials', 'status' => 'FAIL', 'detail' => 'Nessuna credenziale trovata (né file né database).');
+        $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'FAIL', 'detail' => __( 'No credentials found (neither file nor database).', 'mk-analytics-data' ));
     }
 
     // --- GA4 Property ID ---
@@ -1354,9 +1374,9 @@ function mk_system_snapshot() {
     if ( ! empty($pid) && ctype_digit((string)$pid) ) {
         $rows[] = array('label' => 'GA4 Property ID', 'status' => 'OK',   'detail' => $pid);
     } elseif ( ! empty($pid) ) {
-        $rows[] = array('label' => 'GA4 Property ID', 'status' => 'WARN', 'detail' => 'Valore presente ma non numerico: ' . esc_html($pid));
+        $rows[] = array('label' => 'GA4 Property ID', 'status' => 'WARN', 'detail' => sprintf( __( 'Value present but not numeric: %s', 'mk-analytics-data' ), esc_html($pid) ));
     } else {
-        $rows[] = array('label' => 'GA4 Property ID', 'status' => 'FAIL', 'detail' => 'Non configurato.');
+        $rows[] = array('label' => 'GA4 Property ID', 'status' => 'FAIL', 'detail' => __( 'Not configured.', 'mk-analytics-data' ));
     }
 
     // --- Cache (dual-layer: transient + DB option) ---
@@ -1365,73 +1385,77 @@ function mk_system_snapshot() {
     $t_db_valid = $t_db && ! empty($t_db['ids']) && isset($t_db['expires']) && time() < (int)$t_db['expires'];
 
     if ( $t_fast !== false && ! empty($t_fast) ) {
-        $rows[] = array('label' => 'Cache (transient)', 'status' => 'OK',
-            'detail' => count($t_fast) . ' post ID — fast path (transient/Redis).');
+        $rows[] = array('label' => __( 'Cache (transient)', 'mk-analytics-data' ), 'status' => 'OK',
+            'detail' => sprintf( __( '%d post IDs — fast path (transient/Redis).', 'mk-analytics-data' ), count($t_fast) ));
     } elseif ( $t_db_valid ) {
-        $rows[] = array('label' => 'Cache (transient)', 'status' => 'WARN',
-            'detail' => 'Transient mancante (Redis flush?), ma DB fallback OK: ' . count($t_db['ids']) . ' post ID. Verrà riscritto al prossimo accesso.');
+        $rows[] = array('label' => __( 'Cache (transient)', 'mk-analytics-data' ), 'status' => 'WARN',
+            'detail' => sprintf( __( 'Transient missing (Redis flush?), but DB fallback OK: %d post IDs. Will be re-warmed on next access.', 'mk-analytics-data' ), count($t_db['ids']) ));
     } elseif ( $t_fast !== false ) {
-        $rows[] = array('label' => 'Cache (transient)', 'status' => 'WARN',
-            'detail' => 'Transient esiste ma è vuoto.');
+        $rows[] = array('label' => __( 'Cache (transient)', 'mk-analytics-data' ), 'status' => 'WARN',
+            'detail' => __( 'Transient exists but is empty.', 'mk-analytics-data' ));
     } else {
-        $rows[] = array('label' => 'Cache (transient)', 'status' => 'WARN',
-            'detail' => 'Nessun dato in cache (né transient né DB option). Esegui una sincronizzazione GA4.');
+        $rows[] = array('label' => __( 'Cache (transient)', 'mk-analytics-data' ), 'status' => 'WARN',
+            'detail' => __( 'No cached data (neither transient nor DB option). Run a GA4 sync.', 'mk-analytics-data' ));
     }
 
     if ( $t_db_valid ) {
-        $rows[] = array('label' => 'Cache (DB fallback)', 'status' => 'OK',
-            'detail' => count($t_db['ids']) . ' post ID — salvato il ' . ($t_db['saved'] ?? 'n/a') . ', scade ' . date('d/m/Y H:i', $t_db['expires']) . '.');
+        $rows[] = array('label' => __( 'Cache (DB fallback)', 'mk-analytics-data' ), 'status' => 'OK',
+            'detail' => sprintf( __( '%d post IDs — saved on %s, expires %s.', 'mk-analytics-data' ), count($t_db['ids']), ($t_db['saved'] ?? 'n/a'), date('d/m/Y H:i', $t_db['expires']) ));
     } else {
-        $rows[] = array('label' => 'Cache (DB fallback)', 'status' => $t_db ? 'WARN' : 'WARN',
-            'detail' => $t_db ? 'DB option trovato ma scaduto (expires: ' . date('d/m/Y H:i', $t_db['expires'] ?? 0) . ').' : 'Nessun DB option trovato. Esegui una sincronizzazione GA4.');
+        $rows[] = array('label' => __( 'Cache (DB fallback)', 'mk-analytics-data' ), 'status' => 'WARN',
+            'detail' => $t_db
+                ? sprintf( __( 'DB option found but expired (expires: %s).', 'mk-analytics-data' ), date('d/m/Y H:i', $t_db['expires'] ?? 0) )
+                : __( 'No DB option found. Run a GA4 sync.', 'mk-analytics-data' ) );
     }
 
     // --- Object Cache ---
     if ( wp_using_ext_object_cache() ) {
-        $rows[] = array('label' => 'Object Cache', 'status' => 'OK',
-            'detail' => 'Redis/Memcached attivo. Il plugin usa un doppio layer (transient + DB option) per garantire persistenza.');
+        $rows[] = array('label' => __( 'Object Cache', 'mk-analytics-data' ), 'status' => 'OK',
+            'detail' => __( 'Redis/Memcached active. The plugin uses a dual-layer (transient + DB option) to guarantee persistence.', 'mk-analytics-data' ));
     } else {
-        $rows[] = array('label' => 'Object Cache', 'status' => 'OK',
-            'detail' => 'Cache WP standard (database). Transient e DB option entrambi su MySQL.');
+        $rows[] = array('label' => __( 'Object Cache', 'mk-analytics-data' ), 'status' => 'OK',
+            'detail' => __( 'Standard WP cache (database). Transient and DB option both on MySQL.', 'mk-analytics-data' ));
     }
 
     // --- Cron ---
     $cron = mk_cron_status();
     if ( $cron['active'] ) {
-        $rows[] = array('label' => 'Cron Job', 'status' => 'OK',
-            'detail' => 'Attivo. Prossima esecuzione tra ' . $cron['next_human'] . ' (intervallo: ' . $cron['interval_h'] . 'h).');
+        $rows[] = array('label' => __( 'Cron Job', 'mk-analytics-data' ), 'status' => 'OK',
+            'detail' => sprintf( __( 'Active. Next run in %s (interval: %dh).', 'mk-analytics-data' ), $cron['next_human'], $cron['interval_h'] ));
     } else {
-        $rows[] = array('label' => 'Cron Job', 'status' => 'WARN', 'detail' => 'Non pianificato.');
+        $rows[] = array('label' => __( 'Cron Job', 'mk-analytics-data' ), 'status' => 'WARN', 'detail' => __( 'Not scheduled.', 'mk-analytics-data' ));
     }
 
     // --- WP-Cron disabled? ---
     if ( defined('DISABLE_WP_CRON') && DISABLE_WP_CRON ) {
         $rows[] = array('label' => 'DISABLE_WP_CRON', 'status' => 'WARN',
-            'detail' => 'Costante definita a true in wp-config.php. WP-Cron non si attiva su richieste HTTP; serve un cron di sistema.');
+            'detail' => __( 'Constant set to true in wp-config.php. WP-Cron does not fire on HTTP requests; a system cron is required.', 'mk-analytics-data' ));
     } else {
-        $rows[] = array('label' => 'DISABLE_WP_CRON', 'status' => 'OK', 'detail' => 'Non definita. WP-Cron funziona normalmente.');
+        $rows[] = array('label' => 'DISABLE_WP_CRON', 'status' => 'OK', 'detail' => __( 'Not defined. WP-Cron works normally.', 'mk-analytics-data' ));
     }
 
     // --- Composer autoload ---
     $autoload = plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
     if ( file_exists($autoload) ) {
-        $rows[] = array('label' => 'Composer Autoload', 'status' => 'OK',   'detail' => 'vendor/autoload.php trovato.');
+        $rows[] = array('label' => 'Composer Autoload', 'status' => 'OK',   'detail' => __( 'vendor/autoload.php found.', 'mk-analytics-data' ));
     } else {
-        $rows[] = array('label' => 'Composer Autoload', 'status' => 'FAIL', 'detail' => 'vendor/autoload.php non trovato! Esegui "composer install".');
+        $rows[] = array('label' => 'Composer Autoload', 'status' => 'FAIL', 'detail' => __( 'vendor/autoload.php not found! Run "composer install".', 'mk-analytics-data' ));
     }
 
     // --- Google SDK class ---
     if ( class_exists('\Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient') ) {
-        $rows[] = array('label' => 'Google Analytics SDK', 'status' => 'OK',   'detail' => 'BetaAnalyticsDataClient disponibile.');
+        $rows[] = array('label' => 'Google Analytics SDK', 'status' => 'OK',   'detail' => __( 'BetaAnalyticsDataClient available.', 'mk-analytics-data' ));
     } else {
-        $rows[] = array('label' => 'Google Analytics SDK', 'status' => 'FAIL', 'detail' => 'Classe SDK non trovata. Controlla vendor/.');
+        $rows[] = array('label' => 'Google Analytics SDK', 'status' => 'FAIL', 'detail' => __( 'SDK class not found. Check vendor/.', 'mk-analytics-data' ));
     }
 
     // --- Remote sources ---
     $sources = get_option('mk_remote_sources', array());
     $src_count = count( array_filter($sources, fn($s) => ! empty($s['url'])) );
-    $rows[] = array('label' => 'Sorgenti Remote', 'status' => $src_count > 0 ? 'OK' : 'WARN',
-        'detail' => $src_count > 0 ? $src_count . ' sorgent' . ($src_count === 1 ? 'e configurata.' : 'i configurate.') : 'Nessuna sorgente remota configurata.');
+    $rows[] = array('label' => __( 'Remote Sources', 'mk-analytics-data' ), 'status' => $src_count > 0 ? 'OK' : 'WARN',
+        'detail' => $src_count > 0
+            ? sprintf( _n( '%d source configured.', '%d sources configured.', $src_count, 'mk-analytics-data' ), $src_count )
+            : __( 'No remote sources configured.', 'mk-analytics-data' ) );
 
     // --- PHP version ---
     $rows[] = array('label' => 'PHP Version', 'status' => version_compare(PHP_VERSION, '7.4', '>=') ? 'OK' : 'WARN',
@@ -2037,17 +2061,17 @@ add_action( 'admin_notices', function() {
     if ( ! isset($_GET['mk_msg']) ) return;
     $msg    = esc_html( $_GET['mk_msg'] );
     $labels = array(
-        'transient_cleared'  => '&#10003; Cache transient svuotata.',
-        'cron_scheduled'     => '&#10003; Cron Job pianificato correttamente.',
-        'cron_deleted'       => '&#10003; Cron Job eliminato.',
-        'success'                  => '&#10003; Sincronizzazione GA4 completata.',
-        'error:cache_write_failed' => '&#9888; GA4 sincronizzato ma scrittura cache DB fallita. Controlla i permessi di wp_options.',
-        'log_cleared'        => '&#10003; Log svuotato.',
-        'snapshot_refreshed'     => '&#10003; Snapshot aggiornato.',
-        'import_cron_scheduled'  => '&#10003; Cron Import Remoto pianificato.',
-        'import_cron_deleted'         => '&#10003; Cron Import Remoto eliminato.',
-        'error:ga4_disabled_by_mode'  => '&#9888; GA4 sync disabilitato dalla modalità operativa (Import Only).',
-        'error:import_disabled_by_mode' => '&#9888; Import disabilitato dalla modalità operativa (GA4 Only).',
+        'transient_cleared'             => '&#10003; ' . __( 'Transient cache cleared.',                                                                              'mk-analytics-data' ),
+        'cron_scheduled'                => '&#10003; ' . __( 'Cron Job scheduled successfully.',                                                                      'mk-analytics-data' ),
+        'cron_deleted'                  => '&#10003; ' . __( 'Cron Job deleted.',                                                                                     'mk-analytics-data' ),
+        'success'                       => '&#10003; ' . __( 'GA4 sync complete.',                                                                                    'mk-analytics-data' ),
+        'error:cache_write_failed'      => '&#9888; '  . __( 'GA4 synced but DB cache write failed. Check wp_options permissions.',                                   'mk-analytics-data' ),
+        'log_cleared'                   => '&#10003; ' . __( 'Log cleared.',                                                                                          'mk-analytics-data' ),
+        'snapshot_refreshed'            => '&#10003; ' . __( 'Snapshot updated.',                                                                                     'mk-analytics-data' ),
+        'import_cron_scheduled'         => '&#10003; ' . __( 'Remote Import Cron scheduled.',                                                                         'mk-analytics-data' ),
+        'import_cron_deleted'           => '&#10003; ' . __( 'Remote Import Cron deleted.',                                                                           'mk-analytics-data' ),
+        'error:ga4_disabled_by_mode'    => '&#9888; '  . __( 'GA4 sync disabled by operation mode (Import Only).',                                                   'mk-analytics-data' ),
+        'error:import_disabled_by_mode' => '&#9888; '  . __( 'Import disabled by operation mode (GA4 Only).',                                                        'mk-analytics-data' ),
     );
     $class   = ( strpos($msg, 'error') !== false ) ? 'notice-error' : 'notice-success';
     $display = isset($labels[$msg]) ? $labels[$msg] : $msg;
@@ -2073,7 +2097,7 @@ add_action( 'wp_ajax_mk_get_terms_for_pt', function() {
     }
 
     if ( ! $tax ) {
-        wp_send_json_success( array('tax_label' => 'Categoria', 'terms' => array()) );
+        wp_send_json_success( array('tax_label' => __( 'Category', 'mk-analytics-data' ), 'terms' => array()) );
         return;
     }
 
@@ -2168,10 +2192,10 @@ function mk_dashboard_widget_render() {
         $mk_total_views = 0;
         $mk_op_mode_cur = get_option( MK_OP_MODE_OPT, 'both' );
         $mk_range_labels = array(
-            '1daysAgo'  => 'ieri',
-            '7daysAgo'  => 'ultimi 7 gg',
-            '14daysAgo' => 'ultime 2 sett.',
-            '30daysAgo' => 'ultimo mese',
+            '1daysAgo'  => __( 'yesterday',    'mk-analytics-data' ),
+            '7daysAgo'  => __( 'last 7 days',  'mk-analytics-data' ),
+            '14daysAgo' => __( 'last 2 weeks', 'mk-analytics-data' ),
+            '30daysAgo' => __( 'last 30 days', 'mk-analytics-data' ),
         );
         if ( ! empty($mk_an_store['data']) ) {
             foreach ( $mk_an_store['data'] as $mk_an_row ) {
@@ -2181,7 +2205,7 @@ function mk_dashboard_widget_render() {
         ?>
         <?php if ( $mk_total_views > 0 ) : ?>
         <div class="mk-dw-row">
-            <span class="mk-dw-label">&#128065; Visualizzazioni totali</span>
+            <span class="mk-dw-label">&#128065; <?php esc_html_e( 'Total views', 'mk-analytics-data' ); ?></span>
             <span class="mk-dw-value">
                 <strong style="font-size:15px;"><?php echo number_format($mk_total_views); ?></strong>
                 <span style="font-size:11px;color:#aaa;font-weight:400;">
@@ -2193,10 +2217,14 @@ function mk_dashboard_widget_render() {
 
         <!-- MODE ROW -->
         <div class="mk-dw-row">
-            <span class="mk-dw-label">&#9881; Modalità</span>
+            <span class="mk-dw-label">&#9881; <?php esc_html_e( 'Mode', 'mk-analytics-data' ); ?></span>
             <span class="mk-dw-value">
                 <?php
-                $mode_labels = array('ga4_only'=>'Solo GA4','import_only'=>'Solo Import','both'=>'GA4 + Import');
+                $mode_labels = array(
+                    'ga4_only'    => __( 'GA4 only',    'mk-analytics-data' ),
+                    'import_only' => __( 'Import only', 'mk-analytics-data' ),
+                    'both'        => 'GA4 + Import',
+                );
                 echo $pill( $mode_labels[$mk_op_mode_cur] ?? $mk_op_mode_cur, '#fff', '#0073aa' );
                 ?>
             </span>
@@ -2204,33 +2232,38 @@ function mk_dashboard_widget_render() {
 
         <!-- CACHE ROW -->
         <div class="mk-dw-row">
-            <span class="mk-dw-label">&#128230; Post in cache</span>
+            <span class="mk-dw-label">&#128230; <?php esc_html_e( 'Cached posts', 'mk-analytics-data' ); ?></span>
             <span class="mk-dw-value">
+                <?php
+                $cache_label = ( $cache_status === 'ok' )
+                    ? __( 'Active transient', 'mk-analytics-data' )
+                    : __( 'DB fallback (Redis flush?)', 'mk-analytics-data' );
+                ?>
                 <?php if ( $cache_status === 'ok' ) : ?>
-                    <?php echo $pill( $cache_count . ' post', $green_fg, $green_bg ); ?>
+                    <?php echo $pill( $cache_count . ' ' . __( 'posts', 'mk-analytics-data' ), $green_fg, $green_bg ); ?>
                     <span style="font-size:11px;color:#888;font-weight:400;"> &mdash; <?php echo esc_html($cache_label); ?></span>
                 <?php elseif ( $cache_status === 'fallback' ) : ?>
-                    <?php echo $pill( $cache_count . ' post', $yellow_fg, $yellow_bg ); ?>
+                    <?php echo $pill( $cache_count . ' ' . __( 'posts', 'mk-analytics-data' ), $yellow_fg, $yellow_bg ); ?>
                     <span style="font-size:11px;color:#888;font-weight:400;"> &mdash; <?php echo esc_html($cache_label); ?></span>
                 <?php else : ?>
-                    <?php echo $pill( 'Cache vuota', $red_fg, $red_bg ); ?>
+                    <?php echo $pill( __( 'Empty cache', 'mk-analytics-data' ), $red_fg, $red_bg ); ?>
                 <?php endif; ?>
             </span>
         </div>
 
         <!-- LAST FETCH ROW -->
         <div class="mk-dw-row">
-            <span class="mk-dw-label">&#128337; Ultimo fetch GA4</span>
+            <span class="mk-dw-label">&#128337; <?php esc_html_e( 'Last GA4 fetch', 'mk-analytics-data' ); ?></span>
             <span class="mk-dw-value">
                 <?php if ( $last_fetch ) : ?>
                     <span style="font-weight:400;color:#333;">
                         <?php echo esc_html( $last_fetch ); ?>
                     </span>
                     <span style="font-size:11px;color:#aaa;font-weight:400;">
-                        &mdash; <?php echo esc_html( human_time_diff( strtotime($last_fetch), current_time('timestamp') ) ); ?> fa
+                        &mdash; <?php echo esc_html( human_time_diff( strtotime($last_fetch), current_time('timestamp') ) ); ?> <?php esc_html_e( 'ago', 'mk-analytics-data' ); ?>
                     </span>
                 <?php else : ?>
-                    <?php echo $pill( 'Mai eseguito', $grey_fg, $grey_bg ); ?>
+                    <?php echo $pill( __( 'Never run', 'mk-analytics-data' ), $grey_fg, $grey_bg ); ?>
                 <?php endif; ?>
             </span>
         </div>
@@ -2240,13 +2273,13 @@ function mk_dashboard_widget_render() {
             <span class="mk-dw-label">&#9881; Cron GA4 Sync</span>
             <span class="mk-dw-value">
                 <?php if ( $cron['active'] ) : ?>
-                    <?php echo $pill( 'Attivo', $green_fg, $green_bg ); ?>
+                    <?php echo $pill( __( 'Active', 'mk-analytics-data' ), $green_fg, $green_bg ); ?>
                     <span style="font-size:11px;color:#888;font-weight:400;">
-                        &mdash; tra <?php echo esc_html( $cron['next_human'] ); ?>
-                        &middot; ogni <?php echo esc_html( $cron['interval_h'] ); ?>h
+                        &mdash; <?php echo sprintf( esc_html__( 'in %s', 'mk-analytics-data' ), esc_html( $cron['next_human'] ) ); ?>
+                        &middot; <?php echo sprintf( esc_html__( 'every %dh', 'mk-analytics-data' ), $cron['interval_h'] ); ?>
                     </span>
                 <?php else : ?>
-                    <?php echo $pill( 'Non attivo', $red_fg, $red_bg ); ?>
+                    <?php echo $pill( __( 'Inactive', 'mk-analytics-data' ), $red_fg, $red_bg ); ?>
                 <?php endif; ?>
             </span>
         </div>
@@ -2256,13 +2289,13 @@ function mk_dashboard_widget_render() {
             <span class="mk-dw-label">&#128256; Cron Import</span>
             <span class="mk-dw-value">
                 <?php if ( $cron_import['active'] ) : ?>
-                    <?php echo $pill( 'Attivo', $green_fg, $green_bg ); ?>
+                    <?php echo $pill( __( 'Active', 'mk-analytics-data' ), $green_fg, $green_bg ); ?>
                     <span style="font-size:11px;color:#888;font-weight:400;">
-                        &mdash; tra <?php echo esc_html( $cron_import['next_human'] ); ?>
-                        &middot; ogni <?php echo esc_html( $cron_import['interval_h'] ); ?>h
+                        &mdash; <?php echo sprintf( esc_html__( 'in %s', 'mk-analytics-data' ), esc_html( $cron_import['next_human'] ) ); ?>
+                        &middot; <?php echo sprintf( esc_html__( 'every %dh', 'mk-analytics-data' ), $cron_import['interval_h'] ); ?>
                     </span>
                 <?php else : ?>
-                    <?php echo $pill( 'Non attivo', $red_fg, $red_bg ); ?>
+                    <?php echo $pill( __( 'Inactive', 'mk-analytics-data' ), $red_fg, $red_bg ); ?>
                 <?php endif; ?>
             </span>
         </div>
@@ -2270,7 +2303,7 @@ function mk_dashboard_widget_render() {
         <!-- FOOTER -->
         <div class="mk-dw-footer">
             <span>MK Analytics v<?php echo esc_html( get_plugin_data( __FILE__ )['Version'] ?? '—' ); ?></span>
-            <a href="<?php echo esc_url( $settings_url ); ?>" style="color:#0073aa;">&#9881; Impostazioni</a>
+            <a href="<?php echo esc_url( $settings_url ); ?>" style="color:#0073aa;">&#9881; <?php esc_html_e( 'Settings', 'mk-analytics-data' ); ?></a>
         </div>
 
     </div>
@@ -2381,9 +2414,9 @@ class MK_GitHub_Updater {
      */
     private function screenshots_html() {
         $screenshots = array(
-            1 => 'Scheda Configurazione — GA4, intervallo dati e sorgenti remote.',
-            2 => 'Scheda Configurazione — Importazione dati da feed remoti.',
-            3 => 'Scheda Debug & Log — log eventi e snapshot di sistema.',
+            1 => __( 'Configuration tab — GA4, date range and remote sources.',    'mk-analytics-data' ),
+            2 => __( 'Configuration tab — Import data from remote feeds.',          'mk-analytics-data' ),
+            3 => __( 'Debug &amp; Log tab — event log and system snapshot.',        'mk-analytics-data' ),
         );
         $html = '<ol>';
         foreach ( $screenshots as $n => $caption ) {
@@ -2490,6 +2523,9 @@ class MK_GitHub_Updater {
     <li>A Google Service Account with Viewer access to the GA4 property</li>
 </ul>',
                 'changelog'    => '
+<h4>3.5.17</h4><ul><li>Added full multilanguage support (MO/PO): <code>Text Domain</code>, <code>Domain Path</code>, <code>load_plugin_textdomain()</code>; all user-facing strings wrapped with <code>__()</code>. Italian (<code>it_IT</code>) translation included in <code>languages/</code>.</li></ul>
+<h4>3.5.16</h4><ul><li>Added <code>Requires PHP: 8.3</code> and <code>License: GPL v2 or later</code> to plugin header; updated README dependencies and license sections; removed all meksone.com references.</li></ul>
+<h4>3.5.15</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>
 <h4>3.5.14</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>
 <h4>3.5.13</h4><ul><li>Added plugin assets support: icon, banner, and screenshots in the details popup, served from GitHub raw URLs.</li></ul>
 <h4>3.5.12</h4><ul><li>Added Import Mode option (Incremental / Fresh) with AJAX auto-save. Fresh mode permanently deletes all previously imported posts before re-importing.</li></ul>

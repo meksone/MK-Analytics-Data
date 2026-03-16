@@ -2,6 +2,9 @@
 
 A high-performance WordPress plugin for integrating Google Analytics 4 data and remote content management.
 
+## Support me if you like it 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X7X71W3K7W)
+
 ## 📋 Overview
 
 **MK Analytics Data** is a private WordPress plugin that provides:
@@ -163,7 +166,7 @@ Authorization: Basic base64(username:password)
 wp-content/plugins/mk-analytics-data/credentials.json
 ```
 
-**Option B (database):** Paste the JSON content in the **Configurazione** tab. The file takes priority if both are present.
+**Option B (database):** Paste the JSON content in the **Configuration** tab. The file takes priority if both are present.
 
 ---
 
@@ -200,12 +203,17 @@ wp-content/plugins/mk-analytics-data/credentials.json
 
 | Version | Notes |
 |---------|-------|
-| **3.5.9** | Fixed `fix_source_dir` to use file-presence detection instead of `hook_extra`; fixed GitHub ZIP download URL to use direct archive link instead of API `zipball_url` |
-| **3.5.8** | Added `MK_GITHUB_USER`, `MK_GITHUB_REPO`, `MK_PLUGIN_SLUG`, `MK_PLUGIN_VERSION` constants; added `MK_GitHub_Updater` class for GitHub Releases-based self-update |
-| **3.5.7** | Added AJAX handler `mk_save_date_range` to auto-persist GA4 date range on radio change without requiring manual form save |
-| **3.5.6** | Fixed Composer autoloader loading path |
-| **3.5.5** | Version bump |
-| **3.5.4** | Version bump |
+| **3.5.17** | Added full multilanguage support (MO/PO): `Text Domain`, `Domain Path`, `load_plugin_textdomain()`; all user-facing strings wrapped with `__()`. Italian (`it_IT`) translation shipped in `languages/` |
+| **3.5.16** | Added `Requires PHP: 8.3` and `License: GPL v2 or later` to plugin header; updated README dependencies and license sections; removed all meksone.com references |
+| **3.5.15** | Added "View details" Thickbox link to plugin row via `plugin_action_links_` filter |
+| **3.5.14** | Added plugin assets: icon, banner, screenshots in the details popup, served from GitHub raw URLs |
+| **3.5.13** | Added Import Mode option (Incremental / Fresh) with AJAX auto-save |
+| **3.5.12** | Added GitHub Actions workflow to build a canonically named `mk-analytics-data.zip` on release; updater prefers release asset over auto-archive URL |
+| **3.5.11** | Added AJAX handler `mk_save_import_mode`; date range and import mode now auto-save on click |
+| **3.5.10** | Fixed `fix_source_dir` to use file-presence detection instead of `hook_extra`; fixed GitHub ZIP download URL |
+| **3.5.9** | Added `MK_GitHub_Updater` class for GitHub Releases-based self-update |
+| **3.5.8** | Added AJAX handler `mk_save_date_range` to auto-persist GA4 date range on radio change |
+| **3.5.7** | Fixed Composer autoloader loading path |
 | **3.5** | Initial stable release — full GA4 integration, remote content importer, dual-layer cache, cron system, debug log, dashboard widget, REST API with optional auth |
 
 ---
