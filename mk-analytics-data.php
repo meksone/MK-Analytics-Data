@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.12
+ * Version: 3.5.13
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -27,7 +27,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.12' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.13' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -2311,6 +2311,7 @@ class MK_GitHub_Updater {
     private $github_repo;
     private $current_version;
     private $cache_key = 'mk_gh_release_cache';
+    private $assets_url;
 
     public function __construct() {
         $this->plugin_file     = MK_PLUGIN_SLUG;
@@ -2318,6 +2319,8 @@ class MK_GitHub_Updater {
         $this->github_user     = MK_GITHUB_USER;
         $this->github_repo     = MK_GITHUB_REPO;
         $this->current_version = MK_PLUGIN_VERSION;
+        // Raw GitHub URL — images are served directly from the repo (always current, no auth needed)
+        $this->assets_url      = "https://raw.githubusercontent.com/{$this->github_user}/{$this->github_repo}/main/assets/";
 
         add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_update' ) );
         add_filter( 'plugins_api',                           array( $this, 'plugin_info' ), 10, 3 );
@@ -2369,6 +2372,28 @@ class MK_GitHub_Updater {
     }
 
     /**
+     * Build the HTML for the Screenshots tab in the plugin details popup.
+     * Add an entry for each screenshot-N.png file placed in assets/.
+     */
+    private function screenshots_html() {
+        $screenshots = array(
+            1 => 'Dashboard widget — stato cache, cron e ultimo fetch GA4.',
+            2 => 'Scheda Configurazione — GA4, intervallo dati e sorgenti remote.',
+            3 => 'Scheda Debug &amp; Log — log eventi e snapshot di sistema.',
+            4 => 'Scheda Cron Job — pianificazione GA4 sync e import remoto.',
+        );
+        $html = '<ol>';
+        foreach ( $screenshots as $n => $caption ) {
+            $html .= '<li>'
+                   . '<img src="' . esc_url( $this->assets_url . 'screenshot-' . $n . '.png' ) . '" alt="' . esc_attr( $caption ) . '" style="max-width:100%;">'
+                   . '<p>' . $caption . '</p>'
+                   . '</li>';
+        }
+        $html .= '</ol>';
+        return $html;
+    }
+
+    /**
      * Inject an update object into the WordPress plugins update transient when a
      * newer version is available on GitHub.
      */
@@ -2388,8 +2413,14 @@ class MK_GitHub_Updater {
                 'new_version'   => $remote_version,
                 'url'           => "https://github.com/{$this->github_user}/{$this->github_repo}",
                 'package'       => $this->get_download_url( $release ),
-                'icons'         => array(),
-                'banners'       => array(),
+                'icons'         => array(
+                    '1x' => $this->assets_url . 'icon-128x128.png',
+                    '2x' => $this->assets_url . 'icon-256x256.png',
+                ),
+                'banners'       => array(
+                    'low'  => $this->assets_url . 'banner-772x250.png',
+                    'high' => $this->assets_url . 'banner-1544x500.png',
+                ),
                 'banners_rtl'   => array(),
                 'tested'        => '',
                 'requires_php'  => '',
@@ -2426,11 +2457,20 @@ class MK_GitHub_Updater {
             'last_updated'  => $release['published_at'] ?? '',
             'requires'      => '5.0',
             'tested'        => get_bloginfo('version'),
+            'icons'         => array(
+                '1x' => $this->assets_url . 'icon-128x128.png',
+                '2x' => $this->assets_url . 'icon-256x256.png',
+            ),
+            'banners'       => array(
+                'low'  => $this->assets_url . 'banner-772x250.png',
+                'high' => $this->assets_url . 'banner-1544x500.png',
+            ),
             'sections'      => array(
-                'description' => 'High-performance GA4 most-clicked articles + Remote Content Importer.',
-                'changelog'   => isset( $release['body'] )
-                                 ? '<pre>' . esc_html( $release['body'] ) . '</pre>'
-                                 : '',
+                'description'  => 'High-performance GA4 most-clicked articles + Remote Content Importer for WordPress.',
+                'changelog'    => isset( $release['body'] )
+                                  ? '<pre>' . esc_html( $release['body'] ) . '</pre>'
+                                  : '',
+                'screenshots'  => $this->screenshots_html(),
             ),
         );
     }
