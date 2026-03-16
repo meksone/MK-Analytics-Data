@@ -1,6 +1,6 @@
 # MK Analytics Data
 
-A high-performance WordPress plugin for integrating Google Analytics 4 data and remote content management for meksone.com.
+A high-performance WordPress plugin for integrating Google Analytics 4 data and remote content management.
 
 ## 📋 Overview
 
@@ -169,7 +169,7 @@ wp-content/plugins/mk-analytics-data/credentials.json
 
 ## 📦 Dependencies
 
-- PHP 7.4+
+- **PHP 8.3** (mandatory — the Google Analytics Data PHP Client Library requires PHP 8.3 or higher)
 - WordPress 5.0+
 - Google Analytics Data PHP Client Library (`google/analytics-data`)
 
@@ -212,8 +212,7 @@ wp-content/plugins/mk-analytics-data/credentials.json
 
 ## 📄 License
 
-Private plugin — not distributed publicly.
+This plugin is licensed under the **GNU General Public License v2 or later** (GPL-2.0+), the same license as WordPress itself.
 
----
-
-Built for [meksone.com](https://meksone.com)
+You are free to use, study, modify, and distribute this software under the terms of the GPL. A copy of the license is available at:
+https://www.gnu.org/licenses/gpl-2.0.html

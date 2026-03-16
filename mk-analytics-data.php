@@ -2,7 +2,10 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.15
+ * Version: 3.5.16
+ * Requires PHP: 8.3
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
@@ -27,7 +30,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.15' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.16' );                         // Must match the Version header above
 
 // 1. Composer Autoloader — loaded on demand inside mk_fetch_ga4_top_posts()
 // Loading it here (at plugin boot) would register psr/log v3 globally, which
@@ -2423,7 +2426,7 @@ class MK_GitHub_Updater {
                 ),
                 'banners_rtl'   => array(),
                 'tested'        => '',
-                'requires_php'  => '',
+                'requires_php'  => '8.3',
                 'compatibility' => new stdClass(),
             );
         }
@@ -2456,6 +2459,7 @@ class MK_GitHub_Updater {
             'trunk'         => $zip_url,
             'last_updated'  => $release['published_at'] ?? '',
             'requires'      => '5.0',
+            'requires_php'  => '8.3',
             'tested'        => get_bloginfo('version'),
             'icons'         => array(
                 '1x' => $this->assets_url . 'icon-128x128.png',
@@ -2480,7 +2484,7 @@ class MK_GitHub_Updater {
 </ul>
 <h4>Requirements</h4>
 <ul>
-    <li>PHP 7.4+</li>
+    <li>PHP 8.3+ (required — the Google Analytics Data library does not support earlier versions)</li>
     <li>WordPress 5.0+</li>
     <li>Google Analytics Data PHP Client (<code>google/analytics-data</code> via Composer)</li>
     <li>A Google Service Account with Viewer access to the GA4 property</li>
