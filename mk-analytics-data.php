@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.18
+ * Version: 3.5.19
  * Requires PHP: 8.3
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -32,7 +32,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.18' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.19' );                         // Must match the Version header above
 
 // ─────────────────────────────────────────────
 // i18n — load translations (MO/PO files in /languages)
@@ -2409,6 +2409,31 @@ class MK_GitHub_Updater {
     }
 
     /**
+     * Fetch CHANGELOG.html from the GitHub raw URL for a specific release tag.
+     * Cached per-tag so the popup always shows the new version's changelog.
+     * Falls back to an empty string on network failure (popup still works).
+     */
+    private function fetch_changelog( string $tag ): string {
+        $cache_key = 'mk_gh_changelog_' . sanitize_key( $tag );
+        $cached    = get_transient( $cache_key );
+        if ( false !== $cached ) return $cached;
+
+        $url      = "https://raw.githubusercontent.com/{$this->github_user}/{$this->github_repo}/{$tag}/CHANGELOG.html";
+        $response = wp_remote_get( $url, array(
+            'timeout'    => 10,
+            'user-agent' => 'WordPress/' . get_bloginfo('version') . '; ' . home_url(),
+        ) );
+
+        if ( is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) !== 200 ) {
+            return '';
+        }
+
+        $html = wp_remote_retrieve_body( $response );
+        set_transient( $cache_key, $html, 12 * HOUR_IN_SECONDS );
+        return $html;
+    }
+
+    /**
      * Build the HTML for the Screenshots tab in the plugin details popup.
      * Add an entry for each screenshot-N.png file placed in assets/.
      */
@@ -2522,21 +2547,7 @@ class MK_GitHub_Updater {
     <li>Google Analytics Data PHP Client (<code>google/analytics-data</code> via Composer)</li>
     <li>A Google Service Account with Viewer access to the GA4 property</li>
 </ul>',
-                'changelog'    => '
-<h4>3.5.18</h4><ul><li>Translated all <code>mk_log()</code> messages from Italian to English; fixed untranslated "Remote Import Cron" panel title; translated cron schedule display strings.</li></ul>
-<h4>3.5.17</h4><ul><li>Added full multilanguage support (MO/PO): <code>Text Domain</code>, <code>Domain Path</code>, <code>load_plugin_textdomain()</code>; all user-facing strings wrapped with <code>__()</code>. Italian (<code>it_IT</code>) translation included in <code>languages/</code>.</li></ul>
-<h4>3.5.16</h4><ul><li>Added <code>Requires PHP: 8.3</code> and <code>License: GPL v2 or later</code> to plugin header; updated README dependencies and license sections; removed all meksone.com references.</li></ul>
-<h4>3.5.15</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>
-<h4>3.5.14</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>
-<h4>3.5.13</h4><ul><li>Added plugin assets support: icon, banner, and screenshots in the details popup, served from GitHub raw URLs.</li></ul>
-<h4>3.5.12</h4><ul><li>Added Import Mode option (Incremental / Fresh) with AJAX auto-save. Fresh mode permanently deletes all previously imported posts before re-importing.</li></ul>
-<h4>3.5.11</h4><ul><li>Added GitHub Actions workflow to build a canonically named <code>mk-analytics-data.zip</code> on release. Updater now prefers the release asset over the GitHub auto-archive URL.</li></ul>
-<h4>3.5.10</h4><ul><li>Added AJAX handler <code>mk_save_import_mode</code>; date range and import mode now auto-save on click without requiring manual form submit.</li></ul>
-<h4>3.5.9</h4><ul><li>Fixed <code>fix_source_dir</code> to detect the plugin by main file presence instead of <code>hook_extra</code>. Fixed GitHub ZIP download URL to use the direct archive link instead of the API <code>zipball_url</code>.</li></ul>
-<h4>3.5.8</h4><ul><li>Added <code>MK_GitHub_Updater</code> class — GitHub Releases-based self-update fully integrated into the WordPress update flow.</li></ul>
-<h4>3.5.7</h4><ul><li>Added AJAX handler to auto-persist GA4 date range on radio change without requiring manual form save.</li></ul>
-<h4>3.5.6</h4><ul><li>Fixed Composer autoloader loading path to avoid <code>psr/log</code> version conflicts with other plugins.</li></ul>
-<h4>3.5</h4><ul><li>Initial stable release — GA4 integration, remote content importer, dual-layer cache, independent cron jobs, debug log, dashboard widget, REST API with optional auth.</li></ul>',
+                'changelog'    => $this->fetch_changelog( $release['tag_name'] ),
                 'screenshots'  => $this->screenshots_html(),
             ),
         );

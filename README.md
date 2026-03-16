@@ -203,6 +203,7 @@ wp-content/plugins/mk-analytics-data/credentials.json
 
 | Version | Notes |
 |---------|-------|
+| **3.5.19** | Changelog moved to `CHANGELOG.html` and fetched from GitHub at the new release tag — update popup now always shows the new version's history |
 | **3.5.18** | Translated all `mk_log()` messages from Italian to English; fixed untranslated "Remote Import Cron" panel title; translated cron schedule display strings |
 | **3.5.17** | Added full multilanguage support (MO/PO): `Text Domain`, `Domain Path`, `load_plugin_textdomain()`; all user-facing strings wrapped with `__()`. Italian (`it_IT`) translation shipped in `languages/` |
 | **3.5.16** | Added `Requires PHP: 8.3` and `License: GPL v2 or later` to plugin header; updated README dependencies and license sections; removed all meksone.com references |
