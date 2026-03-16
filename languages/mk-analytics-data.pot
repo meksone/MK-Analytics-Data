@@ -465,6 +465,9 @@ msgstr ""
 msgid "No credentials found (neither file nor database)."
 msgstr ""
 
+msgid "Not required (Import only mode)."
+msgstr ""
+
 #. translators: %s = non-numeric value found
 msgid "Value present but not numeric: %s"
 msgstr ""

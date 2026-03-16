@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: MK Analytics Data 3.5.18\n"
 "Report-Msgid-Bugs-To: https://github.com/meksone/MK-Analytics-Data/issues\n"
 "POT-Creation-Date: 2026-03-16T00:00:00+00:00\n"
-"PO-Revision-Date: 2026-03-16 13:54+0100\n"
+"PO-Revision-Date: 2026-03-16 14:26+0100\n"
 "Last-Translator: meksone\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -458,6 +458,9 @@ msgstr "JSON nel database non valido: %s"
 
 msgid "No credentials found (neither file nor database)."
 msgstr "Nessuna credenziale trovata (né file né database)."
+
+msgid "Not required (Import only mode)."
+msgstr "Non richiesto (modalità Solo Import)."
 
 #. translators: %s = non-numeric value found
 msgid "Value present but not numeric: %s"

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.19
+ * Version: 3.5.21
  * Requires PHP: 8.3
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -32,7 +32,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.19' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.21' );                         // Must match the Version header above
 
 // ─────────────────────────────────────────────
 // i18n — load translations (MO/PO files in /languages)
@@ -1352,7 +1352,9 @@ function mk_analytics_settings_page_html() {
 // Returns an array of status rows for the debug tab.
 // ─────────────────────────────────────────────
 function mk_system_snapshot() {
-    $rows = array();
+    $rows    = array();
+    $op_mode = get_option( MK_OP_MODE_OPT, 'both' );
+    $ga4_needed = ( $op_mode !== 'import_only' );
 
     // --- Credentials ---
     $cred_file = plugin_dir_path( __FILE__ ) . 'credentials.json';
@@ -1366,7 +1368,11 @@ function mk_system_snapshot() {
             $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'FAIL', 'detail' => sprintf( __( 'Invalid JSON in database: %s', 'mk-analytics-data' ), json_last_error_msg() ));
         }
     } else {
-        $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ), 'status' => 'FAIL', 'detail' => __( 'No credentials found (neither file nor database).', 'mk-analytics-data' ));
+        $rows[] = array('label' => __( 'Credentials', 'mk-analytics-data' ),
+            'status' => $ga4_needed ? 'WARN' : 'OK',
+            'detail' => $ga4_needed
+                ? __( 'No credentials found (neither file nor database).', 'mk-analytics-data' )
+                : __( 'Not required (Import only mode).', 'mk-analytics-data' ));
     }
 
     // --- GA4 Property ID ---
@@ -1376,7 +1382,11 @@ function mk_system_snapshot() {
     } elseif ( ! empty($pid) ) {
         $rows[] = array('label' => 'GA4 Property ID', 'status' => 'WARN', 'detail' => sprintf( __( 'Value present but not numeric: %s', 'mk-analytics-data' ), esc_html($pid) ));
     } else {
-        $rows[] = array('label' => 'GA4 Property ID', 'status' => 'FAIL', 'detail' => __( 'Not configured.', 'mk-analytics-data' ));
+        $rows[] = array('label' => 'GA4 Property ID',
+            'status' => $ga4_needed ? 'WARN' : 'OK',
+            'detail' => $ga4_needed
+                ? __( 'Not configured.', 'mk-analytics-data' )
+                : __( 'Not required (Import only mode).', 'mk-analytics-data' ));
     }
 
     // --- Cache (dual-layer: transient + DB option) ---
@@ -1443,6 +1453,12 @@ function mk_system_snapshot() {
     }
 
     // --- Google SDK class ---
+    // Load the autoloader here so class_exists() can find the SDK.
+    // require_once is a no-op if mk_fetch_ga4_top_posts() already loaded it.
+    $mk_vendor_snapshot = plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
+    if ( file_exists( $mk_vendor_snapshot ) ) {
+        require_once $mk_vendor_snapshot;
+    }
     if ( class_exists('\Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient') ) {
         $rows[] = array('label' => 'Google Analytics SDK', 'status' => 'OK',   'detail' => __( 'BetaAnalyticsDataClient available.', 'mk-analytics-data' ));
     } else {

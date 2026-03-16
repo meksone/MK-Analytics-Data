@@ -203,6 +203,8 @@ wp-content/plugins/mk-analytics-data/credentials.json
 
 | Version | Notes |
 |---------|-------|
+| **3.5.21** | System Snapshot: "Credentials" and "GA4 Property ID" show WARN when GA4 is needed but unconfigured; show OK when mode is Import only |
+| **3.5.20** | Fixed false FAIL in System Snapshot for "Google Analytics SDK": autoloader now loaded before `class_exists()` check |
 | **3.5.19** | Changelog moved to `CHANGELOG.html` and fetched from GitHub at the new release tag — update popup now always shows the new version's history |
 | **3.5.18** | Translated all `mk_log()` messages from Italian to English; fixed untranslated "Remote Import Cron" panel title; translated cron schedule display strings |
 | **3.5.17** | Added full multilanguage support (MO/PO): `Text Domain`, `Domain Path`, `load_plugin_textdomain()`; all user-facing strings wrapped with `__()`. Italian (`it_IT`) translation shipped in `languages/` |
