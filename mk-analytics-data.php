@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MK Analytics Data
  * Description: High-performance GA4 most-clicked articles + Remote Content Importer
- * Version: 3.5.17
+ * Version: 3.5.18
  * Requires PHP: 8.3
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -32,7 +32,7 @@ define( 'MK_IMPORT_MODE_OPT', 'mk_import_mode' );              // import mode: '
 define( 'MK_GITHUB_USER',    'meksone' );                         // GitHub username/org
 define( 'MK_GITHUB_REPO',    'MK-Analytics-Data' );             // GitHub repository name (just the name, not the full URL)
 define( 'MK_PLUGIN_SLUG',    'mk-analytics-data/mk-analytics-data.php' ); // WP plugin slug
-define( 'MK_PLUGIN_VERSION', '3.5.17' );                         // Must match the Version header above
+define( 'MK_PLUGIN_VERSION', '3.5.18' );                         // Must match the Version header above
 
 // ─────────────────────────────────────────────
 // i18n — load translations (MO/PO files in /languages)
@@ -124,7 +124,7 @@ function mk_cache_set( array $ids, int $ttl_hours = 12 ) {
     $transient_ok = set_transient( MK_CACHE_KEY, $ids, $ttl );
 
     mk_log( 'CACHE_SET', $db_ok ? 'OK' : 'ERROR',
-        'Scrittura cache completata.',
+        'Cache write complete.',
         array(
             'post_count'       => count($ids),
             'ttl_hours'        => $ttl_hours,
@@ -155,12 +155,12 @@ function mk_cache_get() {
     // Fallback — read from wp_options.
     $store = get_option( MK_CACHE_DB_OPTION, false );
     if ( ! $store || empty($store['ids']) || empty($store['expires']) ) {
-        mk_log( 'CACHE_GET', 'WARN', 'Miss: né transient né DB option trovati.' );
+        mk_log( 'CACHE_GET', 'WARN', 'Miss: neither transient nor DB option found.' );
         return false;
     }
 
     if ( time() > (int) $store['expires'] ) {
-        mk_log( 'CACHE_GET', 'WARN', 'Miss: DB option trovato ma scaduto.',
+        mk_log( 'CACHE_GET', 'WARN', 'Miss: DB option found but expired.',
             array('expired_at' => date('Y-m-d H:i:s', $store['expires'])) );
         return false;
     }
@@ -171,7 +171,7 @@ function mk_cache_get() {
     set_transient( MK_CACHE_KEY, $ids, $remaining_ttl );
 
     mk_log( 'CACHE_GET', 'WARN',
-        'Fallback: dati recuperati da DB option (transient mancante, probabilmente Redis flush). Transient riscritto.',
+        'Fallback: data retrieved from DB option (transient missing, likely Redis flush). Transient re-warmed.',
         array(
             'post_count'    => count($ids),
             'remaining_ttl' => $remaining_ttl . 's',
@@ -188,7 +188,7 @@ function mk_cache_get() {
 function mk_cache_delete() {
     delete_transient( MK_CACHE_KEY );
     delete_option( MK_CACHE_DB_OPTION );
-    mk_log( 'CACHE_DELETE', 'INFO', 'Cache svuotata da entrambi i layer (transient + DB option).' );
+    mk_log( 'CACHE_DELETE', 'INFO', 'Cache cleared from both layers (transient + DB option).' );
 }
 
 // ─────────────────────────────────────────────
@@ -199,13 +199,13 @@ add_filter( 'cron_schedules', function( $schedules ) {
     $hours_ga4 = max( 1, (int) get_option( MK_CRON_OPTION, 12 ) );
     $schedules['mk_custom_hours'] = array(
         'interval' => $hours_ga4 * HOUR_IN_SECONDS,
-        'display'  => sprintf( 'Ogni %d ore (MK GA4 Sync)', $hours_ga4 ),
+        'display'  => sprintf( 'Every %d hours (MK GA4 Sync)', $hours_ga4 ),
     );
     // Remote import schedule
     $hours_imp = max( 1, (int) get_option( MK_IMPORT_CRON_OPTION, 24 ) );
     $schedules['mk_import_hours'] = array(
         'interval' => $hours_imp * HOUR_IN_SECONDS,
-        'display'  => sprintf( 'Ogni %d ore (MK Import)', $hours_imp ),
+        'display'  => sprintf( 'Every %d hours (MK Import)', $hours_imp ),
     );
     return $schedules;
 } );
@@ -227,14 +227,14 @@ function mk_schedule_cron() {
     mk_unschedule_cron();
     $ok = wp_schedule_event( time(), 'mk_custom_hours', MK_CRON_HOOK );
     mk_log( 'CRON', $ok !== false ? 'OK' : 'ERROR',
-        $ok !== false ? 'Cron job pianificato.' : 'wp_schedule_event() ha restituito false.',
+        $ok !== false ? 'Cron job scheduled.' : 'wp_schedule_event() returned false.',
         array( 'interval_h' => get_option(MK_CRON_OPTION, 12) )
     );
 }
 
 function mk_unschedule_cron() {
     wp_clear_scheduled_hook( MK_CRON_HOOK );
-    mk_log( 'CRON', 'INFO', 'Cron job rimosso dalla coda WP-Cron.' );
+    mk_log( 'CRON', 'INFO', 'Cron job removed from WP-Cron queue.' );
 }
 
 function mk_cron_status() {
@@ -252,14 +252,14 @@ function mk_schedule_import_cron() {
     mk_unschedule_import_cron();
     $ok = wp_schedule_event( time(), 'mk_import_hours', MK_IMPORT_CRON_HOOK );
     mk_log( 'IMPORT_CRON', $ok !== false ? 'OK' : 'ERROR',
-        $ok !== false ? 'Import cron pianificato.' : 'wp_schedule_event() ha restituito false.',
+        $ok !== false ? 'Import cron scheduled.' : 'wp_schedule_event() returned false.',
         array( 'interval_h' => get_option( MK_IMPORT_CRON_OPTION, 24 ) )
     );
 }
 
 function mk_unschedule_import_cron() {
     wp_clear_scheduled_hook( MK_IMPORT_CRON_HOOK );
-    mk_log( 'IMPORT_CRON', 'INFO', 'Import cron rimosso dalla coda WP-Cron.' );
+    mk_log( 'IMPORT_CRON', 'INFO', 'Import cron removed from WP-Cron queue.' );
 }
 
 function mk_import_cron_status() {
@@ -880,7 +880,7 @@ function mk_analytics_settings_page_html() {
             <!-- ── PANEL 1: GA4 SYNC ── -->
             <div class="mk-cron-card">
                 <h3 style="margin-top:0;border-bottom:1px solid #eee;padding-bottom:10px;">
-                    &#128200; Cron GA4 Sync
+                    &#128200; <?php esc_html_e( 'Cron GA4 Sync', 'mk-analytics-data' ); ?>
                 </h3>
                 <?php if ( $cron['active'] ) :
                     $next_fmt = get_date_from_gmt( date('Y-m-d H:i:s', $cron['next_ts']), 'd/m/Y H:i:s' );
@@ -926,7 +926,7 @@ function mk_analytics_settings_page_html() {
             <!-- ── PANEL 2: REMOTE IMPORT ── -->
             <div class="mk-cron-card">
                 <h3 style="margin-top:0;border-bottom:1px solid #eee;padding-bottom:10px;">
-                    &#128256; Cron Import Remoto
+                    &#128256; <?php esc_html_e( 'Remote Import Cron', 'mk-analytics-data' ); ?>
                 </h3>
                 <?php if ( $cron_import['active'] ) :
                     $next_imp_fmt = get_date_from_gmt( date('Y-m-d H:i:s', $cron_import['next_ts']), 'd/m/Y H:i:s' );
@@ -1473,7 +1473,7 @@ function mk_system_snapshot() {
 function mk_get_credentials_config() {
     $credentials_file = plugin_dir_path( __FILE__ ) . 'credentials.json';
     if ( file_exists( $credentials_file ) ) {
-        mk_log('CREDENTIALS', 'INFO', 'Usando file credentials.json dalla cartella plugin.');
+        mk_log('CREDENTIALS', 'INFO', 'Using credentials.json file from plugin folder.');
         return $credentials_file;
     }
 
@@ -1481,13 +1481,13 @@ function mk_get_credentials_config() {
     if ( ! empty( $credentials_json ) ) {
         $decoded = json_decode( $credentials_json, true );
         if ( json_last_error() === JSON_ERROR_NONE ) {
-            mk_log('CREDENTIALS', 'INFO', 'Usando credenziali dal database (wp_options).');
+            mk_log('CREDENTIALS', 'INFO', 'Using credentials from database (wp_options).');
             return $decoded;
         }
-        mk_log('CREDENTIALS', 'ERROR', 'JSON credenziali nel database non valido.', json_last_error_msg());
+        mk_log('CREDENTIALS', 'ERROR', 'Invalid credentials JSON in database.', json_last_error_msg());
     }
 
-    mk_log('CREDENTIALS', 'ERROR', 'Nessuna credenziale trovata.');
+    mk_log('CREDENTIALS', 'ERROR', 'No credentials found.');
     return null;
 }
 
@@ -1506,7 +1506,7 @@ function mk_format_duration( $seconds ) {
 }
 
 function mk_fetch_ga4_top_posts() {
-    mk_log('GA4_FETCH', 'INFO', 'Avvio fetch dati GA4.');
+    mk_log('GA4_FETCH', 'INFO', 'Starting GA4 data fetch.');
 
     // Load Composer autoloader here (deferred) to avoid registering psr/log v3
     // at plugin boot, which conflicts with plugins bundling psr/log v1.
@@ -1524,15 +1524,15 @@ function mk_fetch_ga4_top_posts() {
     if ( ! in_array($date_range, $allowed_ranges, true) ) $date_range = '30daysAgo';
 
     if ( empty( $property_id ) ) {
-        mk_log('GA4_FETCH', 'ERROR', 'GA4 Property ID non configurato.');
+        mk_log('GA4_FETCH', 'ERROR', 'GA4 Property ID not configured.');
         return 'error:missing_config';
     }
     if ( empty( $credentials ) ) {
-        mk_log('GA4_FETCH', 'ERROR', 'Credenziali mancanti o non valide.');
+        mk_log('GA4_FETCH', 'ERROR', 'Credentials missing or invalid.');
         return 'error:missing_config';
     }
 
-    mk_log('GA4_FETCH', 'INFO', 'Avvio richiesta API.', array('property_id' => $property_id, 'date_range' => $date_range));
+    mk_log('GA4_FETCH', 'INFO', 'Starting API request.', array('property_id' => $property_id, 'date_range' => $date_range));
 
     try {
         $client  = new \Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient(['credentials' => $credentials]);
@@ -1560,7 +1560,7 @@ function mk_fetch_ga4_top_posts() {
 
         $response  = $client->runReport($request);
         $row_count = $response->getRowCount();
-        mk_log('GA4_FETCH', 'INFO', 'Risposta API ricevuta.', array('rows_returned' => $row_count, 'date_range' => $date_range));
+        mk_log('GA4_FETCH', 'INFO', 'API response received.', array('rows_returned' => $row_count, 'date_range' => $date_range));
 
         $popular_ids    = [];
         $analytics_data = [];  // keyed by post_id
@@ -1609,19 +1609,19 @@ function mk_fetch_ga4_top_posts() {
                 update_post_meta( $post_id, '_mk_ga4_date_range',     $date_range );
                 update_post_meta( $post_id, '_mk_ga4_fetched_at',     current_time('Y-m-d H:i:s') );
 
-                mk_log('GA4_FETCH', 'INFO', 'Post trovato: ' . $path, array(
+                mk_log('GA4_FETCH', 'INFO', 'Post matched: ' . $path, array(
                     'post_id' => $post_id,
                     'views'   => $views,
                     'avg_time'=> mk_format_duration($avg_time),
                 ));
             } else {
-                mk_log('GA4_FETCH', 'INFO', 'Path ignorato: ' . $path);
+                mk_log('GA4_FETCH', 'INFO', 'Path skipped: ' . $path);
             }
 
             if ( count($popular_ids) >= 10 ) break;
         }
 
-        mk_log('GA4_FETCH', 'INFO', 'Post popolari identificati: ' . count($popular_ids), $popular_ids);
+        mk_log('GA4_FETCH', 'INFO', 'Popular posts identified: ' . count($popular_ids), $popular_ids);
 
         if ( ! empty($popular_ids) ) {
             // Save enriched analytics data to its own wp_options key
@@ -1636,10 +1636,10 @@ function mk_fetch_ga4_top_posts() {
             return $result ? 'success' : 'error:cache_write_failed';
         }
 
-        mk_log('GA4_FETCH', 'WARN', 'Nessun post popolare trovato.');
+        mk_log('GA4_FETCH', 'WARN', 'No popular posts found.');
 
     } catch ( \Exception $e ) {
-        mk_log('GA4_FETCH', 'ERROR', 'Eccezione API: ' . $e->getMessage(), array(
+        mk_log('GA4_FETCH', 'ERROR', 'API exception: ' . $e->getMessage(), array(
             'class' => get_class($e),
             'code'  => $e->getCode(),
         ));
@@ -1655,7 +1655,7 @@ function mk_fetch_ga4_top_posts() {
 function mk_import_remote_content() {
     $sources = get_option( 'mk_remote_sources', array() );
     if ( empty( $sources ) ) {
-        mk_log('IMPORT', 'WARN', 'Nessuna sorgente remota configurata.');
+        mk_log('IMPORT', 'WARN', 'No remote sources configured.');
         return 'error:no_sources_configured';
     }
 
@@ -1673,27 +1673,27 @@ function mk_import_remote_content() {
         foreach ( $existing as $pid ) {
             if ( wp_delete_post( $pid, true ) ) $deleted++;
         }
-        mk_log('IMPORT', 'INFO', "Modalità Fresh: eliminati {$deleted} post precedentemente importati.");
+        mk_log('IMPORT', 'INFO', "Fresh mode: deleted {$deleted} previously imported posts.");
     }
 
     $imported_count = 0;
-    mk_log('IMPORT', 'INFO', 'Avvio importazione da ' . count($sources) . ' sorgenti.', array('mode' => $import_mode));
+    mk_log('IMPORT', 'INFO', 'Starting import from ' . count($sources) . ' sources.', array('mode' => $import_mode));
 
     foreach ( $sources as $source ) {
         if ( empty( $source['url'] ) ) continue;
 
-        mk_log('IMPORT', 'INFO', 'Fetch sorgente: ' . $source['url']);
+        mk_log('IMPORT', 'INFO', 'Fetching source: ' . $source['url']);
         $fetch_args = array('timeout' => 30);
         if ( ! empty($source['username']) && ! empty($source['password']) ) {
             $fetch_args['headers'] = array(
                 'Authorization' => 'Basic ' . base64_encode( $source['username'] . ':' . $source['password'] ),
             );
-            mk_log('IMPORT', 'INFO', 'Usando autenticazione Basic per: ' . $source['url']);
+            mk_log('IMPORT', 'INFO', 'Using Basic Auth for: ' . $source['url']);
         }
         $response = wp_remote_get( $source['url'], $fetch_args );
 
         if ( is_wp_error($response) ) {
-            mk_log('IMPORT', 'ERROR', 'Fetch fallito: ' . $response->get_error_message(), array('url' => $source['url']));
+            mk_log('IMPORT', 'ERROR', 'Fetch failed: ' . $response->get_error_message(), array('url' => $source['url']));
             continue;
         }
 
@@ -1701,17 +1701,17 @@ function mk_import_remote_content() {
         $posts     = json_decode( wp_remote_retrieve_body($response), true );
 
         if ( empty($posts) || ! is_array($posts) ) {
-            mk_log('IMPORT', 'WARN', 'Risposta vuota o non JSON.', array('http_code' => $http_code, 'url' => $source['url']));
+            mk_log('IMPORT', 'WARN', 'Empty or non-JSON response.', array('http_code' => $http_code, 'url' => $source['url']));
             continue;
         }
 
-        mk_log('IMPORT', 'INFO', count($posts) . ' post ricevuti da sorgente.', array('url' => $source['url']));
+        mk_log('IMPORT', 'INFO', count($posts) . ' posts received from source.', array('url' => $source['url']));
 
         foreach ( $posts as $remote_post ) {
             $title         = html_entity_decode( $remote_post['title'] );
             $existing_post = get_posts(array('title' => $title, 'post_type' => 'post', 'numberposts' => 1));
             if ( ! empty($existing_post) ) {
-                mk_log('IMPORT', 'INFO', 'Post già esistente, skip: ' . $title);
+                mk_log('IMPORT', 'INFO', 'Post already exists, skipping: ' . $title);
                 continue;
             }
 
@@ -1741,7 +1741,7 @@ function mk_import_remote_content() {
 
             if ( $new_post_id && ! is_wp_error($new_post_id) ) {
                 $imported_count++;
-                mk_log('IMPORT', 'OK', 'Post importato: ' . $title, array('new_post_id' => $new_post_id));
+                mk_log('IMPORT', 'OK', 'Post imported: ' . $title, array('new_post_id' => $new_post_id));
 
                 if ( ! empty($remote_post['url']) ) {
                     update_post_meta( $new_post_id, '_mk_original_url', esc_url_raw($remote_post['url']) );
@@ -1769,27 +1769,27 @@ function mk_import_remote_content() {
                             update_post_meta( $new_post_id, $meta_key, $an[$payload_key] );
                         }
                     }
-                    mk_log('IMPORT', 'OK', 'Metadati analytics scritti per: ' . $title, array(
+                    mk_log('IMPORT', 'OK', 'Analytics metadata written for: ' . $title, array(
                         'post_id' => $new_post_id,
                         'views'   => $an['views'] ?? null,
                         'avg_time'=> $an['avg_time_human'] ?? null,
                     ));
                 } else {
-                    mk_log('IMPORT', 'INFO', 'Nessun dato analytics nel payload remoto per: ' . $title);
+                    mk_log('IMPORT', 'INFO', 'No analytics data in remote payload for: ' . $title);
                 }
 
                 if ( ! empty($remote_post['image']) ) {
                     mk_upload_remote_image( $remote_post['image'], $new_post_id );
                 }
             } else {
-                mk_log('IMPORT', 'ERROR', 'wp_insert_post() fallito per: ' . $title,
+                mk_log('IMPORT', 'ERROR', 'wp_insert_post() failed for: ' . $title,
                     is_wp_error($new_post_id) ? $new_post_id->get_error_message() : 'return false');
             }
         }
     }
 
     $result = ($imported_count > 0) ? "success:imported_$imported_count" : "error:no_new_posts";
-    mk_log('IMPORT', $imported_count > 0 ? 'OK' : 'WARN', 'Importazione completata.', array('imported' => $imported_count));
+    mk_log('IMPORT', $imported_count > 0 ? 'OK' : 'WARN', 'Import complete.', array('imported' => $imported_count));
     return $result;
 }
 
@@ -1804,7 +1804,7 @@ function mk_upload_remote_image( $image_url, $post_id ) {
     $clean_url  = strtok( $image_url, '?' );
     $tmp        = download_url( $image_url );
     if ( is_wp_error($tmp) ) {
-        mk_log('IMAGE', 'ERROR', 'download_url() fallito.', array('url' => $image_url, 'error' => $tmp->get_error_message()));
+        mk_log('IMAGE', 'ERROR', 'download_url() failed.', array('url' => $image_url, 'error' => $tmp->get_error_message()));
         return;
     }
 
@@ -1812,9 +1812,9 @@ function mk_upload_remote_image( $image_url, $post_id ) {
     $id         = media_handle_sideload( $file_array, $post_id );
     if ( ! is_wp_error($id) ) {
         set_post_thumbnail( $post_id, $id );
-        mk_log('IMAGE', 'OK', 'Immagine allegata.', array('post_id' => $post_id, 'attachment_id' => $id));
+        mk_log('IMAGE', 'OK', 'Image attached.', array('post_id' => $post_id, 'attachment_id' => $id));
     } else {
-        mk_log('IMAGE', 'ERROR', 'media_handle_sideload() fallito.', array('url' => $image_url, 'error' => $id->get_error_message()));
+        mk_log('IMAGE', 'ERROR', 'media_handle_sideload() failed.', array('url' => $image_url, 'error' => $id->get_error_message()));
     }
 }
 
@@ -2007,7 +2007,7 @@ add_action( 'admin_post_mk_clear_transient', function() {
     check_admin_referer('mk_clear_transient_action');
     if ( ! current_user_can('manage_options') ) wp_die('Unauthorized');
     mk_cache_delete();
-    mk_log('TRANSIENT', 'INFO', 'Transient svuotato manualmente dall\'amministratore.');
+    mk_log('TRANSIENT', 'INFO', 'Transient manually cleared by administrator.');
     mk_redirect('transient_cleared');
 });
 
@@ -2523,6 +2523,7 @@ class MK_GitHub_Updater {
     <li>A Google Service Account with Viewer access to the GA4 property</li>
 </ul>',
                 'changelog'    => '
+<h4>3.5.18</h4><ul><li>Translated all <code>mk_log()</code> messages from Italian to English; fixed untranslated "Remote Import Cron" panel title; translated cron schedule display strings.</li></ul>
 <h4>3.5.17</h4><ul><li>Added full multilanguage support (MO/PO): <code>Text Domain</code>, <code>Domain Path</code>, <code>load_plugin_textdomain()</code>; all user-facing strings wrapped with <code>__()</code>. Italian (<code>it_IT</code>) translation included in <code>languages/</code>.</li></ul>
 <h4>3.5.16</h4><ul><li>Added <code>Requires PHP: 8.3</code> and <code>License: GPL v2 or later</code> to plugin header; updated README dependencies and license sections; removed all meksone.com references.</li></ul>
 <h4>3.5.15</h4><ul><li>Added "View details" link to the plugin row on the Plugins screen via <code>plugin_action_links_</code> filter.</li></ul>

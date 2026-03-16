@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: MK Analytics Data 3.5.17\n"
+"Project-Id-Version: MK Analytics Data 3.5.18\n"
 "Report-Msgid-Bugs-To: https://github.com/meksone/MK-Analytics-Data/issues\n"
 "POT-Creation-Date: 2026-03-16T00:00:00+00:00\n"
-"PO-Revision-Date: 2026-03-16 13:25+0100\n"
+"PO-Revision-Date: 2026-03-16 13:54+0100\n"
 "Last-Translator: meksone\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -251,6 +251,12 @@ msgid "Clear Cache"
 msgstr "Svuota Cache"
 
 # --- Cron tab ---
+msgid "Cron GA4 Sync"
+msgstr "Cron Sincronizzazione GA4"
+
+msgid "Remote Import Cron"
+msgstr "Cron Import Remoto"
+
 msgid "Cron Job Management"
 msgstr "Gestione Cron Job"
 
